@@ -1,3 +1,30 @@
-theme: jekyll-theme-cayman
+# theme: jekyll-theme-cayman
 title: 月知录
 description: 稽古有得，随时札记，久而类次成书
+
+name: zbelial
+job: 软件工程师
+baseurl: "" # the subpath of your site, e.g. /blog/
+url: "https://zbelial.github.io" # the base hostname & protocol for your site
+author: "@zbelial"
+author_name: "zbelial"
+github_username: zbelial
+
+safe: true
+archivelimit: 10
+
+encoding: utf-8
+permalink: /:title
+timezone: Asia/Shanghai
+limit_posts: 100
+
+strict_front_matter: false
+profile: true
+incremental: true
+verbose: true
+unpublished: false
+
+# local configuration
+port: 5000
+host: localhost
+livereload: true
