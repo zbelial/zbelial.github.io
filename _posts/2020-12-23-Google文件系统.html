@@ -132,7 +132,7 @@ GFS提供了常见的文件系统接口，但并没有实现像POSIX这样的标
 <div class="outline-text-3" id="text-org3330a46">
 <p>
 一个GFS集群包含一个master和多个chunkserver，会有多个客户端访问，如图1所示。每台机器都是一台普通的Linux机器，运行着一个用户态的服务进程。很容易在同一台机器上运行一个chunkserver和一个客户端程序，只要机器资源允许，并且能接受运行可能不可靠的应用代码导致的可靠性降低。<br />
-<img src="images/GFS/Figure 1 GFS Architecture.png" alt="Figure 1 GFS Architecture.png" /><br />
+<img src="./images/GFS/Figure 1 GFS Architecture.png" alt="Figure 1 GFS Architecture.png" /><br />
 文件分割为固定大小的数据块（chunk）。每个数据块由不可变、且全局唯一的64位数据块句柄来标识，这个句柄是在数据块被创建时由master分配的。Chunkserver将数据块以Linux系统文件的方式存储在本地磁盘上，并读/写用数据块句柄和字节范围指定的数据块数据。为了可靠性，每个数据块会复制到多个chunkserver。默认情况下会存储三个副本，但用户可以为文件命名空间的不同分区设定不同的副本级别。<br />
 Master维护所有的文件系统元数据。包括命名空间，访问控制信息，文件到数据库的映射，以及数据块当前存储在哪儿。Master还控制系统范围的活动，例如数据块租约管理，无用数据块的回收，数据块在不同chunkserver间的迁移。Master定期地使用HeartBeat消息来跟每个chunkserver通信，以便向chunkserver发送指令并收集它们的状态。<br />
 GFS客户端代码要链接到每个应用中，它实现了文件系统API，并代表应用跟master和chunkserver通信来读写数据。客户端同master交互来进行元数据操作，但是所有数据相关的通信都是直接跟chunkserver进行的。我们不提供POSIX API，因此不需要接入LInux的vnode层。<br />
