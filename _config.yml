@@ -28,4 +28,4 @@ port: 5000
 host: localhost
 livereload: true
 
-theme: jekyll-theme-cayman
+# theme: jekyll-theme-cayman
