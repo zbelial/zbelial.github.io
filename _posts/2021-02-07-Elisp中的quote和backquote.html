@@ -1,0 +1,144 @@
+---
+date: 2021-02-07 00:00
+author: zbelial
+latex_compiler: xelatex
+latex_header: \XeTeXlinebreaklocale "zh"
+title: Elisp中的quote和backquote
+layout: post
+categories: 
+- Emacs
+- Elisp
+excerpt: Elisp中quote和backquote的使用
+tags: 
+---
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#org3c407df">quote</a></li>
+<li><a href="#orgbe7b36d">backquote</a>
+<ul>
+<li><a href="#org0ca2da5">,</a></li>
+<li><a href="#orgf97793c">,@</a></li>
+</ul>
+</li>
+<li><a href="#orgff13d16">function</a></li>
+</ul>
+</div>
+</div>
+<p>
+Elisp中有三种引用结构： <code>quote</code> , <code>function</code> 以及 <code>backquote</code> 。<br />
+</p>
+
+<div id="outline-container-org3c407df" class="outline-2">
+<h2 id="org3c407df">quote</h2>
+<div class="outline-text-2" id="text-org3c407df">
+<p>
+<code>(quote</code> <i>object</i> <code>)</code> 会按照文本形式返回 <i>object</i> ，不对其进行求值。所以quote的主要用途在于定义常量符号和列表。<br />
+</p>
+<div class="org-src-container">
+<pre class="src src-elisp">(quote (+ 1 2)) ; 对这个表达式求值，会返回下面的结果。
+</pre>
+</div>
+<p>
+(+ 1 2)<br />
+</p>
+
+<p>
+quote的简写形式就是一个单引号字符 <code>'</code> 。 <code>'x</code> 等价于 <code>(quote x)</code> 。<br />
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgbe7b36d" class="outline-2">
+<h2 id="orgbe7b36d">backquote</h2>
+<div class="outline-text-2" id="text-orgbe7b36d">
+<p>
+<code>backquote</code> 用于引用一个list，但是允许对list的某些元素求值。其最简单的形式等同于 <code>quote</code> 。下面的两个form是等价的：<br />
+</p>
+<div class="org-src-container">
+<pre class="src src-elisp">`(a list of (+ 2 3) elements)
+</pre>
+</div>
+<p>
+(a list of (+ 2 3) elements)<br />
+</p>
+
+<div class="org-src-container">
+<pre class="src src-elisp">'(a list of (+ 2 3) elements)
+</pre>
+</div>
+<p>
+(a list of (+ 2 3) elements)<br />
+</p>
+
+<p>
+backquote的简写形式就是一个反引号字符 <code>`</code> 。<br />
+</p>
+</div>
+<div id="outline-container-org0ca2da5" class="outline-3">
+<h3 id="org0ca2da5">,</h3>
+<div class="outline-text-3" id="text-org0ca2da5">
+<p>
+特殊标记 <code>,</code> 告诉 <code>backquote</code> ，其后跟随的参数需要求值，结果放到backquote生成的list中。例如：<br />
+</p>
+<div class="org-src-container">
+<pre class="src src-elisp">`(a list of ,(+ 2 3) elements)
+</pre>
+</div>
+<p>
+a list of 5 elements<br />
+</p>
+
+<p>
+再看另一个例子：<br />
+</p>
+<div class="org-src-container">
+<pre class="src src-elisp">(setq v '(a b c))
+
+`(a list embedding ,v)
+</pre>
+</div>
+<p>
+a list embedding (a b c)<br />
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgf97793c" class="outline-3">
+<h3 id="orgf97793c">,@</h3>
+<div class="outline-text-3" id="text-orgf97793c">
+<p>
+特殊标记 <code>,@</code> 告诉 <code>backquote</code> ，其后跟随的参数需要求值， <b>求值后生成的list的元素要被提取到跟外围元素同级的位置。</b> 看例子：<br />
+</p>
+<div class="org-src-container">
+<pre class="src src-elisp">(setq v '(v1 v2 v3))
+`(a list including values a ,@v and b)
+</pre>
+</div>
+<p>
+a list including values a v1 v2 v3 and b<br />
+</p>
+
+<p>
+需要注意的是， <code>,@</code> 后的参数求值后应该是一个list（或者其它自求值的对象，例如数字，字符串，向量等）。<br />
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgff13d16" class="outline-2">
+<h2 id="orgff13d16">function</h2>
+<div class="outline-text-2" id="text-orgff13d16">
+<p>
+<code>(function</code> <i>function-object</i> <code>)</code> 不对参数 <i>function-object</i> 求值，而是直接返回（类似quote）。跟 <code>quote</code> 不同的是，它会告诉Elisp其返回的值是要作为函数使用的。<br />
+<code>function</code> 有个简写形式： <code>#'</code> 。下面三种定义匿名函数的方式是等价的：<br />
+</p>
+<div class="org-src-container">
+<pre class="src src-elisp">(lambda (x) x)
+(function (lambda (x) x))
+#'(lambda (x) x)
+</pre>
+</div>
+</div>
+</div>
