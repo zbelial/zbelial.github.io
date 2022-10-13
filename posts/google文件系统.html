@@ -1,0 +1,774 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    
+    <meta charset="utf-8">
+    <title>
+      月知录
+      
+    </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="zjyzhaojiyang@gmail.com (zbelial))" />
+    <meta name="description" content="zbelial&#39;s personal blog." />
+    
+    
+  <meta property="og:title" content="Google文件系统">
+  <meta property="og:url" content="https://zbelial.github.io/posts/google文件系统.html">
+  
+    <meta property="og:description" content="The Google File System翻译">
+  
+  
+  <meta name="twitter:card" content="summary_large_image">
+
+    <link rel="stylesheet" href="https://zbelial.github.io/static/main.css" type="text/css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora&family=Space+Mono&display=swap" />
+    
+  </head>
+  <body>
+    
+    
+      <header>
+        <h1>
+          <a href="https://zbelial.github.io/">
+            月知录
+          </a>
+        </h1>
+        <a href="#main" class="visually-hidden">跳转到正文(jump to main content)</a>
+        <nav>
+          <ul class="menu">
+            <li><a href="https://zbelial.github.io/about.html">关于(about)</a></li>
+            <li><a href="https://zbelial.github.io/">首页(blog)</a></li>
+          </ul>
+        </nav>
+      </header>
+    
+
+    
+    <main id="main">
+      
+  <article class="post">
+    <h1 class="post__title">
+      Google文件系统
+    </h1>
+    <section class="post__meta">
+      
+        12月 23, 2020
+      
+    </section>
+    <section>
+      <div id="table-of-contents" role="doc-toc">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="#摘要-abstract">摘要(Abstract)</a>
+<ul>
+<li><a href="#分类和主题描述-categories-and-subject-descriptors">分类和主题描述（Categories and Subject Descriptors）</a></li>
+<li><a href="#一般术语-general-terms">一般术语（General Terms）</a></li>
+<li><a href="#关键词-keywords">关键词（Keywords）</a></li>
+</ul>
+</li>
+<li><a href="#1-概述-introduction">1 概述(Introduction)</a></li>
+<li><a href="#2-设计综述-design-overview">2 设计综述（DESIGN OVERVIEW）</a>
+<ul>
+<li><a href="#2-1-一些假设-assumptions">2.1 一些假设（Assumptions）</a></li>
+<li><a href="#2-2-接口-interface">2.2 接口（Interface）</a></li>
+<li><a href="#2-3-架构-architecture">2.3 架构（Architecture）</a></li>
+<li><a href="#2-4-单master-single-master">2.4 单Master（Single Master）</a></li>
+<li><a href="#2-5-数据块大小-chunk-size">2.5 数据块大小（Chunk Size）</a></li>
+<li><a href="#2-6-元数据-metadata">2.6 元数据（Metadata）</a>
+<ul>
+<li><a href="#2-6-1-内存中数据结构-in-memory-data-structures">2.6.1 内存中数据结构（In-Memory Data Structures）</a></li>
+<li><a href="#2-6-2-数据块的位置-chunk-locations">2.6.2 数据块的位置（Chunk Locations）</a></li>
+<li><a href="#2-6-3-操作日志-operation-log">2.6.3 操作日志（Operation Log）</a></li>
+</ul>
+</li>
+<li><a href="#2-7-一致性模型-consistency-model">2.7 一致性模型（Consistency Model）</a>
+<ul>
+<li><a href="#2-7-1-gfs提供的保证-guarantees-by-gfs">2.7.1 GFS提供的保证（Guarantees by GFS）</a></li>
+<li><a href="#2-7-2-对应用的影响-implications-for-applications">2.7.2 对应用的影响（Implications for Applications）</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#3-系统交互-system-interactions">3 系统交互（SYSTEM INTERACTIONS）</a>
+<ul>
+<li><a href="#3-1-租约和改动顺序-leases-and-mutation-order">3.1 租约和改动顺序（Leases and Mutation Order）</a></li>
+<li><a href="#3-2-数据流-data-flow">3.2 数据流（Data Flow)</a></li>
+<li><a href="#3-3-原子记录追加-atomic-record-appends">3.3 原子记录追加（Atomic Record Appends）</a></li>
+<li><a href="#3-4-快照-snapshot">3.4 快照（Snapshot）</a></li>
+</ul>
+</li>
+<li><a href="#4-master操作-master-operation">4 Master操作（MASTER OPERATION）</a>
+<ul>
+<li><a href="#4-1-名字空间管理和锁-namespace-management-and-locking">4.1 名字空间管理和锁（Namespace Management and Locking）</a></li>
+<li><a href="#4-2-副本放置-replica-placement">4.2 副本放置（Replica Placement）</a></li>
+<li><a href="#4-3-创建-重新复制-再平衡-creation-re-replication-rebalancing">4.3 创建，重新复制，再平衡（Creation, Re-replication, Rebalancing）</a></li>
+<li><a href="#4-4-垃圾回收-garbage-collection">4.4 垃圾回收（Garbage Collection）</a>
+<ul>
+<li><a href="#4-4-1-机制-mechanism">4.4.1 机制（Mechanism）</a></li>
+<li><a href="#4-4-2-讨论-discussion">4.4.2 讨论（Discussion）</a></li>
+</ul>
+</li>
+<li><a href="#4-5-过期副本检测-stale-replica-detection">4.5 过期副本检测（Stale Replica Detection）</a></li>
+</ul>
+</li>
+<li><a href="#5-容错和诊断-fault-tolerance-and-diagnosis">5 容错和诊断（FAULT TOLERANCE AND DIAGNOSIS）</a>
+<ul>
+<li><a href="#5-1-高可用-high-availability">5.1 高可用（High Availability）</a>
+<ul>
+<li><a href="#5-1-1-快速恢复-fast-recovery">5.1.1 快速恢复（Fast Recovery）</a></li>
+<li><a href="#5-1-2-数据块复制-chunk-replication">5.1.2 数据块复制（Chunk Replication）</a></li>
+<li><a href="#5-1-3-master复制-master-replication">5.1.3 Master复制（Master Replication）</a></li>
+</ul>
+</li>
+<li><a href="#5-2-数据完整性-data-integrity">5.2 数据完整性（Data Integrity）</a></li>
+<li><a href="#5-3-诊断工具-diagnostic-tools">5.3 诊断工具（Diagnostic Tools）</a></li>
+</ul>
+</li>
+<li><a href="#待续">待续。。</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-摘要-abstract" class="outline-2">
+<h2 id="摘要-abstract">摘要(Abstract)</h2>
+<div class="outline-text-2">
+<p>
+我们设计并实现了Google文件系统，一个面向大型分布式数据密集型应用的可扩展分布式文件系统。它运行在便宜的、常见的硬件上，提供了容错功能，并且为大量的客户端提供了高的整体性能。<br />
+</p>
+
+<p>
+尽管跟以前的分布式文件系统有很多相同的目标，我们的设计源自我们自己——当前以及预计的——应用负载和技术环境，这跟以前的一些文件系统的假设有明显的不同。这使得我们重新审视传统的决策，并探索一些非常不同的设计。<br />
+</p>
+
+<p>
+这个文件系统很好地满足了我们的存储需求。在Google内部，它作为生成和处理数据的存储平台而广泛部署，这些数据除了被我们的服务使用，也用于需要大规模数据集的研究和开发工作。目前为止，最大的集群运行提供了几百TB的存储，这个存储由一千多台机器上的几千块磁盘组成。<br />
+</p>
+
+<p>
+这这篇论文中，我们描述了为支持分布式应用而设计的文件系统接口扩展，讨论了设计的很多方面，并展示了来自微型基准测试和现实世界使用的性能报告。<br />
+</p>
+</div>
+
+<div id="outline-container-分类和主题描述-categories-and-subject-descriptors" class="outline-3">
+<h3 id="分类和主题描述-categories-and-subject-descriptors">分类和主题描述（Categories and Subject Descriptors）</h3>
+<div class="outline-text-3">
+<p>
+分布式文件系统<br />
+</p>
+</div>
+</div>
+
+<div id="outline-container-一般术语-general-terms" class="outline-3">
+<h3 id="一般术语-general-terms">一般术语（General Terms）</h3>
+<div class="outline-text-3">
+<p>
+设计，可靠性，性能，测量<br />
+</p>
+</div>
+</div>
+
+<div id="outline-container-关键词-keywords" class="outline-3">
+<h3 id="关键词-keywords">关键词（Keywords）</h3>
+<div class="outline-text-3">
+<p>
+容错，可扩展，数据存储，集群存储<br />
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-1-概述-introduction" class="outline-2">
+<h2 id="1-概述-introduction">1 概述(Introduction)</h2>
+<div class="outline-text-2">
+<p>
+我们设计和实现GFS是为了满足Google日益曾唱的数据处理的需求。GFS跟以前的分布式文件系统有很多相同的目标，例如性能、可扩展性、可靠性以及可用性。但是，它的设计源自我们对Google应用的当前和以后的工作负载和技术环境的关键观察，这些跟以前的一些文件系统的设计假设具有明显的差异。我们重新审视了传统的设计决策，并探索了一些非常不同的设计。<br />
+</p>
+
+<p>
+首先，组件经常出现故障，并不是偶尔出现。文件系统包含数百甚至是数千台由便宜部件组成的存储机器，会被相当数量的客户端访问。组件的数量和质量实际上决定了一些组件会随时无法正常工作，一些组件再也无法从故障中恢复。我们遇到过由应用bug，操作系统bug，人为失误，以及磁盘、内存、连接器、网络以及电力供应故障导致的问题。因此，持续的监控，错误检测，容错，以及自动恢复等必须内建于系统中。<br />
+</p>
+
+<p>
+其次，按传统标准来说，我们的文件都是很大的。几GB大小的文件很常见。每个文件一般都包含多个应用对象（例如web文档）。当我们日常处理由数十亿对象组成的、大小好几个TB且还在快速增加的数据集时，即便文件系统支持管理数十亿个大小几KB的文件，管理起来也是不方便的。因此，一些设计假设以及诸如I/O操作和块大小等的参数也需要重新考虑。<br />
+</p>
+
+<p>
+第三，大多数文件只会追加新数据，而不是修改已有的数据。文件内的随机写操作几乎没有。一旦写完了，文件只会被读，而且经常是只会顺序被读。大量的数据都是这种读写模式。一些数据会构成大的数据仓库，数据分析程序会扫描这些数据。一些数据是由运行中的应用持续不断生成的数据流。一些数据是由一台数据生成的中间结果，会有另一台机器并发地或者稍后处理。考虑到这种对大文件的访问模式，性能优化和原子性保证的重点就放在了追加操作上，而在客户端缓存数据没太被关注。<br />
+</p>
+
+<p>
+第四，协同设计应用和文件系统API有助于提高整个系统的灵活性。例如，我们放宽了GFS的一致性模型以便极大地简化文件系统，同时又没有给应用带来很大的负担。我们也引入了原子的追加操作，这样多个客户端不需要额外的同步就可以并发地往同一个文件追加数据。后面我们会更详细地讨论这些。<br />
+</p>
+
+<p>
+当前部署了多个服务于不同需要的GFS集群。最大的一个有超过1000个存储节点，超过300TB磁盘空间，有数百个分布在不同机器上的客户端持续地大量访问这个集群。<br />
+</p>
+</div>
+</div>
+<div id="outline-container-2-设计综述-design-overview" class="outline-2">
+<h2 id="2-设计综述-design-overview">2 设计综述（DESIGN OVERVIEW）</h2>
+<div class="outline-text-2" id="text-2-设计综述-design-overview">
+</div>
+<div id="outline-container-2-1-一些假设-assumptions" class="outline-3">
+<h3 id="2-1-一些假设-assumptions">2.1 一些假设（Assumptions）</h3>
+<div class="outline-text-3">
+<p>
+在为我们的需求设计一个文件系统的过程中，我们遵循着一些挑战和机遇并存的假设。前面我们已经提到了一些关键观察，现在让我们更详细地描述这些假设。<br />
+</p>
+<ul class="org-ul">
+<li>系统由一些便宜常见的组件构建而成，这些组件经常出故障。系统必须持续地监控自身，检测、容忍组件故障并快速地从故障中恢复。<br /></li>
+<li>系统存储适度数量的大文件。我们的期望是有数百万个文件，每个文件至少100MB大小。最常见的是几GB大小的文件，系统应该能高效管理这种大小的文件。小文件也必须支持，但不需要特别对其优化。<br /></li>
+<li>工作负载主要是两种读操作：大数据量的流式读，小数据量的随机读。在流式读操作中，单个操作一般会读几百KB，更常见的是1MB甚至更大。来自同一个客户端的连续的读操作经常是读文件的某个连续区域。随机读一般是从某个偏移位置读其KB数据。有性能要求的应用一般会将小的读操作排序，并分批处理，这样不需要在文件内来来回回地读。<br /></li>
+<li>工作负载也包括很多向文件追加数据的大数据量的、连续的写操作。写的数据量跟读操作类似。一旦写完，文件很少会再被修改。支持在文件任意位置少量写数据，但不需要多高效。<br /></li>
+<li>系统必须高效地为多个客户端并发向同一文件追加数据实现定义良好的语义。我们的文件经常被用作生产者－消费者队列，或者用于多路合并。数百个生产者，每个运行在单独的机器上，并发地追加数据到同一个文件。至关重要的是原子操作的同步成本要尽可能小。文件可能稍后被读取，也可能当时就有消费者在读取。<br /></li>
+<li>高带宽利用率比低延迟更重要。我们的大部分应用更看重高速的批处理，几乎没有应用对单次的读写响应时间有严格的要求。<br /></li>
+</ul>
+</div>
+</div>
+<div id="outline-container-2-2-接口-interface" class="outline-3">
+<h3 id="2-2-接口-interface">2.2 接口（Interface）</h3>
+<div class="outline-text-3">
+<p>
+GFS提供了常见的文件系统接口，但并没有实现像POSIX这样的标准API。文件用目录方式层次化地组织起来，通过路径名来标识。我们支持常见的操作：create，delete，open，close，read，以及write。<br />
+</p>
+
+<p>
+另外，GFS支持快照（snapshot）和记录追加（record append）操作。快照用最小的成本创建一个文件或者一个目录的副本。记录追加允许多个客户端并发地往同一个文件追加数据，并且保证每个客户端的追加操作都是原子的。这对于实现多路合并以及多个客户端可以不加锁就能同时追加数据的生产者－消费者队列很有用。我们发现这些类型的文件对于构建大规模分布式应用是非常有用的。快照和记录追加会分别在3.4节和3.3节做进一步讨论。<br />
+</p>
+</div>
+</div>
+<div id="outline-container-2-3-架构-architecture" class="outline-3">
+<h3 id="2-3-架构-architecture">2.3 架构（Architecture）</h3>
+<div class="outline-text-3">
+<p>
+一个GFS集群包含一个master和多个chunkserver，会有多个客户端访问，如图1所示。每台机器都是一台普通的Linux机器，运行着一个用户态的服务进程。很容易在同一台机器上运行一个chunkserver和一个客户端程序，只要机器资源允许，并且能接受运行可能不可靠的应用代码导致的可靠性降低。<br />
+</p>
+
+
+<div id="org332557a" class="figure">
+<p><img src="images/GFS/Figure 1 GFS Architecture.png" alt="Figure 1 GFS Architecture.png" width="80%" /><br />
+</p>
+</div>
+
+<p>
+文件分割为固定大小的数据块（chunk）。每个数据块由不可变、且全局唯一的64位数据块句柄来标识，这个句柄是在数据块被创建时由master分配的。Chunkserver将数据块以Linux系统文件的方式存储在本地磁盘上，并读/写用数据块句柄和字节范围指定的数据块数据。为了可靠性，每个数据块会复制到多个chunkserver。默认情况下会存储三个副本，但用户可以为文件命名空间的不同分区设定不同的副本级别。<br />
+</p>
+
+<p>
+Master维护所有的文件系统元数据。包括命名空间，访问控制信息，文件到数据库的映射，以及数据块当前存储在哪儿。Master还控制系统范围的活动，例如数据块租约管理，无用数据块的回收，数据块在不同chunkserver间的迁移。Master定期地使用HeartBeat消息来跟每个chunkserver通信，以便向chunkserver发送指令并收集它们的状态。<br />
+</p>
+
+<p>
+GFS客户端代码要链接到每个应用中，它实现了文件系统API，并代表应用跟master和chunkserver通信来读写数据。客户端同master交互来进行元数据操作，但是所有数据相关的通信都是直接跟chunkserver进行的。我们不提供POSIX API，因此不需要接入LInux的vnode层。<br />
+</p>
+
+<p>
+不管是客户端还是chunkserver都不会缓存文件数据。客户端缓存没什么用，因为大多数应用是顺序读取大文件，或者工作集太大而不适合缓存起来。由于消除了缓存一致性问题，不提供缓存功能简化了客户端和整个系统。（但客户端确实会缓存元数据）因为数据块就是本地文件，Linux的缓冲区缓存已经将经常访问的数据保存在内存中了，因此Chunkserver不需要缓存文件数据。<br />
+</p>
+</div>
+</div>
+<div id="outline-container-2-4-单master-single-master" class="outline-3">
+<h3 id="2-4-单master-single-master">2.4 单Master（Single Master）</h3>
+<div class="outline-text-3">
+<p>
+使用单个master极大地简化了我们的设计，master也可以使用全局知识来执行复杂的数据块放置和复制决策。但是，我们必须尽量少的让master介入读写，这样它才不会成为瓶颈。客户端决不会经由master来读写文件数据。客户端会询问master应该跟哪个chunkserver联系。客户端会缓存这个信息一定时间，后续的许多操作都是直接跟chunkserver联系。<br />
+</p>
+
+<p>
+我们使用图1来解释一下一个简单的读操作会涉及的交互。首先，根据固定的数据块尺寸，客户端会将应用指定的文件名和字节偏移转换为文件内部的数据块索引。然后，它会发送包含文件名和数据块索引的请求给master。Master会返回对应的数据块句柄和副本位置信息回来。客户端使用文件名和数据块索引作为key来缓存master返回的信息。<br />
+</p>
+
+<p>
+然后，客户端会发送一个请求到其中一个副本（很可能是距离最近的一个副本）。请求里会指定数据块句柄和此数据块内的字节范围。除非缓存信息过期了，或者文件再次被打开，后续再读同一个数据块就不需要客户端再跟master交互了。事实上，客户端会一次请求多个数据块的信息，master也可以将紧挨着被请求数据块的其它数据块的信息也一起返回。这些额外的信息可以消除后续的一些客户端－master交互，又没有增加额外的负担。<br />
+</p>
+</div>
+</div>
+<div id="outline-container-2-5-数据块大小-chunk-size" class="outline-3">
+<h3 id="2-5-数据块大小-chunk-size">2.5 数据块大小（Chunk Size）</h3>
+<div class="outline-text-3">
+<p>
+数据块大小是一个关键的设计参数。我们使用64MB大小，这比典型的文件系统块大小要大得多。每个数据块副本作为普通的Linux文件存储在一个chunkserver上，只在需要的时候才会增大。惰性空间分配避免了由内部碎片导致的空间浪费，而内部碎片可能是对使用这么大数据块的最大异议。<br />
+</p>
+
+<p>
+大的数据块大小有几个重要的好处。首先，减少了客户端跟master的交互需求，因为对同一个数据块的读写只需要向master请求一次数据块的位置信息。这减少对我们的工作负载来说尤其有用，因为应用基本是顺序读写大文件。即便是校的随机读，客户端也可以很容易地缓存好几个TB大小的工作集的所有数据块位置信息。第二，使用大的数据块，客户端更可能在某个数据块上执行多个操作，通过长时间地保持到chunkserver的持久TCP连接，可以减少网络负担。第三，减少了master需要存储的元数据的大小。这样就可以将元数据保存在内存中，这反过来又带来了其它好处（2.6.1节会讨论）。<br />
+</p>
+
+<p>
+另一方面，即便是有惰性空间分配，使用大的数据块也有一些缺点。小的文件只会有几个数据块，可能仅有一个。如果很多客户端在访问同一个文件，存储这些数据块的chunkserver可能会成为热点。在实践中，热点问题并不严重，因为我们的应用基本都是顺序读有多个数据块的大文件。<br />
+</p>
+
+<p>
+但是，在GFS首次被用在一个批处理队列系统中时，热点问题的确出现过：一个可执行文件作为单数据块文件被写入到GFS，然后同时在数百台机器上启动。存储这个可执行文件的少量几个chunkserver由于数百个并发请求而超负荷了。我们是这样解决这个问题的：使用更大的副本参数来存储这类可执行文件，并且让批处理队列系统不同时启动。一个可能的、长远的解决方式，是在这种情形下允许客户端从其它客户端读数据。<br />
+</p>
+</div>
+</div>
+<div id="outline-container-2-6-元数据-metadata" class="outline-3">
+<h3 id="2-6-元数据-metadata">2.6 元数据（Metadata）</h3>
+<div class="outline-text-3">
+<p>
+Master会存储三种主要的元数据：文件和数据块名字空间，文件到数据块的映射，以及每个文件数据块的副本的位置。所有的元数据都保存在master的内存中。前两种类型（名字空间和文件到数据块映射）的改动也会持久化存储到操作日志（operation log）中，操作日志存储在master的本地磁盘，并复制到远程机器上。使用日志使得我们可以简单、可靠地更新master的状态，在master崩溃的时候也不会出现（状态）不一致的问题。Master不会持久化保存数据块的位置信息。在master启动或者有chunkserver加入到集群时，master会向每个chunkserver询问其存储的数据块信息。<br />
+</p>
+</div>
+<div id="outline-container-2-6-1-内存中数据结构-in-memory-data-structures" class="outline-4">
+<h4 id="2-6-1-内存中数据结构-in-memory-data-structures">2.6.1 内存中数据结构（In-Memory Data Structures）</h4>
+<div class="outline-text-4">
+<p>
+因为元数据保存在内存中，master的操作是很快的。此外，对master来说，它可以简单且高效地在后台周期性地扫描自身的全部状态。这个周期性扫描用来实现数据块垃圾回收，chunkserver失效时的重新复制（re-replication），以及数据块迁移（为了在chunkserver间平衡负载以及磁盘空间的使用）。4.3和4.4节会进一步讨论这些活动。<br />
+</p>
+
+<p>
+只用内存保存元数据的一个潜在问题是：数据块的个数，进而整个系统的容量受限于master的内存有多少。在实践中这不是个严重的限制。对于64MB大小的一个数据块，master保存其元数据所需的内存不到64字节。大多数的数据块都是满的，因为大多数的文件都包含多个数据块，也就只有最后的数据块不满。类似的，每个文件的文件名字空间数据需要的内存少于64字节，因为文件名使用前缀压缩方式存储。<br />
+</p>
+
+<p>
+如果需要支持更大的文件系统，比起把元数据保存到内存所带来的好处——简单，可靠性，性能，以及可扩展性，给master增加内存的成本是很小的。<br />
+</p>
+</div>
+</div>
+<div id="outline-container-2-6-2-数据块的位置-chunk-locations" class="outline-4">
+<h4 id="2-6-2-数据块的位置-chunk-locations">2.6.2 数据块的位置（Chunk Locations）</h4>
+<div class="outline-text-4">
+<p>
+Master不会将chunkserver上有哪些数据块副本的信息持久化保存下来。它只是在启动的时候从chunkserver获取这些信息。启动之后，master能保证它的信息是最新的，因为它控制数据块如何放置，并且还会通过定时的HeartBeat消息来监控chunkserver的状态。<br />
+</p>
+
+<p>
+一开始我们想把数据块位置信息持久化保存在master上，但是我们考虑后确定在启动时从chunkserver请求（并在启动后定时请求）这些数据更简单。使用这种方式，在chunkserver加入、离开集群，改变名字，失效，重启，等等情形下，不需要考虑保持master和chunkserver同步的问题。在一个有数百台服务器的集群中，这些问题太常见了。<br />
+</p>
+
+<p>
+理解这个设计决策的另一种方式是：chunkserver对于它有哪些数据块有最终决定权。试图在Master上维护这些信息的一个一致的视图是没有意义的（注：这里的意思应该是，Master上的信息并不总是最新的，要得到最新信息，还是要问chunkserver），因为chunkserver上的错误可能会导致数据块突然就消失了（例如，磁盘发生故障后被禁用）或者操作员有可能给chunkserver改名了。<br />
+</p>
+</div>
+</div>
+<div id="outline-container-2-6-3-操作日志-operation-log" class="outline-4">
+<h4 id="2-6-3-操作日志-operation-log">2.6.3 操作日志（Operation Log）</h4>
+<div class="outline-text-4">
+<p>
+操作日志中保存了关键的元数据修改的历史记录。它是GFS的核心。它不止是元数据的唯一的持久化记录，也作为确定并发操作顺序的逻辑时间线。文件和数据块，以及它们的版本（见4.5节）都始终由它们被创建时的逻辑时间来唯一地标识。<br />
+</p>
+
+<p>
+既然操作日志这么重要，我们必须可靠地保存它，并且只有在元数据的改动被持久化保存之后才能对客户端可见。否则（注：意思是如果操作日志没有可靠地保存），即便是数据块本身幸存了下来，我们实际上也失去了整个文件系统或者最近的客户端操作信息。因此，我们将操作日志复制到多台远程机器上，并且只有在所有机器都将日志记录邪道磁盘之后才会给客户端回复。Master会一次将多条日志记录整个写到磁盘，这会减少写磁盘和复制对整个系统吞吐量的影响。<br />
+</p>
+
+<p>
+Master通过重新处理操作日志来回复其文件系统的状态。为了最小化启动时间，我们必须要保证日志很小。当日志大小超过一个阈值，master会生成其状态的检查点，这样它可以从本地磁盘加载最新的检查点、并重新处理检查点之后有限的日志记录来恢复状态。检查点是紧湊的、类似B树的形式，不需要额外的解析就可以直接映射到内存里用于名字空间查找。这进一步提高了恢复速度，提高了可用性。<br />
+</p>
+
+<p>
+因为创建检查点需要花费一些时间，master的内部状态结构被设计成在生成新的检查点时不会耽搁处理新的改动。Master会切换到新的日志文件，使用一个单独的线程创建检查点。新的检查点包含了切换之前的所有改动。对于一个有数百万文件的集群，创建检查点大概要花费一分钟。创建完成之后，检查点会被写到本地和远程机器的磁盘。<br />
+</p>
+
+<p>
+恢复只需要最近的完整检查点以及后续的日志文件。旧的检查点和日志文件可以随意删除，但我们还是保留了几个以防出现重大事故。生成检查点的过程中出现的问题不会影响正确性，因为恢复时会检测并跳过不完整的检查点。<br />
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-2-7-一致性模型-consistency-model" class="outline-3">
+<h3 id="2-7-一致性模型-consistency-model">2.7 一致性模型（Consistency Model）</h3>
+<div class="outline-text-3">
+<p>
+GFS采用了一个宽松的一致性模型，这个模型可以很好的支持我们高度分布式化的应用，又能相对简单高效的实现。我们现在要讨论GFS提供的保证，这些保证对于应用来说意味着什么。我们也会强调GFS如何维护这些保证的，至于细节，我们会放在论文的其他部分。<br />
+</p>
+</div>
+<div id="outline-container-2-7-1-gfs提供的保证-guarantees-by-gfs" class="outline-4">
+<h4 id="2-7-1-gfs提供的保证-guarantees-by-gfs">2.7.1 GFS提供的保证（Guarantees by GFS）</h4>
+<div class="outline-text-4">
+<p>
+文件名字空间的改动（例如，文件创建）是原子的。它们完全由master处理：名字空间锁保证了原子性和正确性（4.1节）；master的操作日志定义了这些操作的一个全局的全序关系（2.6.3节)。<br />
+</p>
+
+<p>
+在一次数据改动后，文件区域（file region）的状态取决于做了何种改动，改动是否成功，以及是否有并发的改动。表1总结了对应的结果。对于一个文件区域，如果所有的客户端从任一个副本读到的数据总是一样的，这个文件区域就是一致的（consistent）。在文件数据改动之后，如果文件区域是一致的，并且客户端能够看到完整的写入内容，文件区域就是确定的（defined）。当一个改动成功了，且未受其他并发写入的干扰，被改动区域就是确定的（因此也是一致的）：所有客户端都会看这次改动写入的内容。并发的成功改动，会使得被改动区域变为不确定（undefined）、但一致的状态：所有客户端都会看到相同的内容，但是内容可能并不反映任一改动所做的写入。通常，内容会包含来自多个改动的、互相混合的片段。一次失败的改动会使得文件区域不一致（因此也是不确定的）：不同的客户端在不同的时刻会看到不同的内容。下面我们会描述我们的应用如何区分确定的和不确定的文件区域。应用不需要进一步区分不确定的文件区域的不同类型。<br />
+</p>
+
+
+<div id="org84185e3" class="figure">
+<p><img src="images/GFS/Table 1 File Region State After Mutation.png" alt="Table 1 File Region State After Mutation.png" width="80%" /><br />
+</p>
+</div>
+
+<p>
+数据改动有两种：写或者记录追加。写会将数据写到应用指定的文件偏移位置。记录追加会将数据（即“记录”）原子地追加到由GFS选定的偏移位置至少一次，即便是在并发改动存在的情况下。（与此相反，“普通”的追加只是在客户端以为的文件当前末尾写入。）偏移位置会返回给客户端，它标志着包含被写入记录的那块确定的文件区域的开始。另外，GFS可能会在记录之间插入填充内容或者是记录的副本。它们会占据那些被认为不一致的区域，而且通常比用户数据要小得多。<br />
+</p>
+
+<p>
+在一系列成功的改动之后，GFS保证被改动的文件区域是确定的，会包含最后一个改动写入的数据。GFS通过以下方法达成这一点的：(a)在所有副本上将改动按照相同的顺序写到数据块，(b)通过数据块版本号来检测过时的副本（4.5节），过时是由于副本所在的chunkserver停止运行而遗漏了一些改动。改动不会写到过时的副本中，这些副本也不会被返回给请求数据块位置的客户端。它们会被尽早地清理掉。<br />
+</p>
+
+<p>
+因为客户端会缓存数据块的位置信息，它们可能会因为位置信息没有更新而从过时的副本读数据。这个时间窗口受限于缓存项的过期时间和文件的下次打开时间——打开文件会清除缓存中此文件的所有数据块信息。另外，因为我们的大多数文件都是只会追加的，旧副本通常会返回比实际小的数据块结束位置，而不是旧数据。当客户端重试并联系master时，它会立即得到当前的数据块位置。<br />
+</p>
+
+<p>
+在一次成功的改动完成很久之后，组件故障也会破坏数据。GFS通过master和所有chunkserver之间定期的握手来识别有问题的chunkserver，通过校验和检查（5.2节）来检测数据损坏。一旦发现问题，数据会尽快从正常的副本恢复（4.3节）。除非在GFS做出反应之前（一般是几分钟）所有的副本都损毁了，数据块不会真正丢失。即使是真的丢失了，它会不可用，但不会损坏：应用会收到明确的错误，而不是损坏的数据。<br />
+</p>
+</div>
+</div>
+<div id="outline-container-2-7-2-对应用的影响-implications-for-applications" class="outline-4">
+<h4 id="2-7-2-对应用的影响-implications-for-applications">2.7.2 对应用的影响（Implications for Applications）</h4>
+<div class="outline-text-4">
+<p>
+通过使用一些简单的、在其它情形下也需要的技术，GFS应用可以适应这种宽松的一致性模型，这些技术包括：依赖追加而不是覆写，检查点，写自我校验、自我标识的记录。<br />
+</p>
+
+<p>
+事实上，我们的所有应用都是通过追加而不是覆写来修改文件。一个典型的应用是，写入者从头到尾生成一个文件。它会在写完数据后以原子方式将文件名改成一个永久的名字，或者周期性地检查已经成功写了多少数据。检查点也可能包含应用层的校验和。读程序只会验证处理最近的检查点之前的文件区域，这些数据是处于确定状态的。不管有什么一致性和并发问题，这个方法对我们来说工作得很好。追加比随机写要高效得多，也更容易处理应用错误。检查点使得写入者可以增量式地重启（注：意思是不需要从头开始重新处理操作日志），防止读取者处理那些已经写入成功、但从应用的视角看还不完整的文件数据。<br />
+</p>
+
+<p>
+在另一种典型应用中，许多写入者并发追加归并结果到同一个文件，或者作为生产者－消费者队列。记录追加具有的至少追加一次的语义保全了每个写入者的输出。读取者以如下方式处理偶尔加入的对齐和重复记录。写入者的每个记录都包含额外的信息（例如校验和），因此可以校验记录的有效性。读取者可以使用校验和来标识和丢弃额外的对齐数据和记录碎片。如果读取者不能容忍偶尔出现的重复记录（例如，如果它会出发非幂等的操作），它可以使用记录中的唯一标识符过滤掉重复数据，反正这些标识符经常会被用来命名这一类的应用实体，例如web文档。这些用于记录I/O的功能（除了丢弃重复记录那些）都以库的形式被我们的应用共享，也适用于Google内部的其它文件接口实现。于是，同样的记录序列，以及零星的一些重复记录，总是会被分发给记录读取者。<br />
+</p>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-3-系统交互-system-interactions" class="outline-2">
+<h2 id="3-系统交互-system-interactions">3 系统交互（SYSTEM INTERACTIONS）</h2>
+<div class="outline-text-2">
+<p>
+我们以让master尽可能少地参与到所有操作中为目标来设计系统。以此为背景，我们现在要描述客户端，master，以及chunkserver如何交互以实现数据修改，原子记录追加，以及快照。<br />
+</p>
+</div>
+<div id="outline-container-3-1-租约和改动顺序-leases-and-mutation-order" class="outline-3">
+<h3 id="3-1-租约和改动顺序-leases-and-mutation-order">3.1 租约和改动顺序（Leases and Mutation Order）</h3>
+<div class="outline-text-3">
+<p>
+改动是指修改数据块的内容或者元数据的操作，例如写入或者追加。每个改动都会在数据块的所有副本上执行。我们使用租约来使得改动在所有副本上以同样的顺序进行。Master会将租约授予其中一个副本，这个副本成为主副本（primary）。主副本为所有改动确定一个顺序。所有副本都按照这个顺序来执行改动。因此，全局改动顺序由两部分定义：首先是master选定的授予租约的顺序，其次就是一个租约内，由主副本指定的顺序号。<br />
+</p>
+
+<p>
+租约机制是用来最小化master的管理成本。一个租约的初始超时时间是60秒。但是，只要这个数据块正在被修改，主副本可以无限次地向master请求租约延期，而且一般会获得master的准许。这些租约延期的请求和授予是由HeartBeat消息（master和所有的chunkserver会定期交换HeartBeat消息）捎带的。Master有时可能会尝试在租约到期前收回授权（例如，当master要禁止对正在重命名的文件做修改时）。即便master跟主副本之间通信出现故障，它也可以在旧租约到期之后安全地将新租约授予另一个副本。<br />
+</p>
+
+<p>
+<img src="images/GFS/Figure 2 Write Control and Data Flow.png" alt="Figure 2 Write Control and Data Flow.png" /><br />
+在图2中，我们沿着用数字标记的写入控制流展示了这一过程。<br />
+</p>
+<ol class="org-ol">
+<li>客户端向master询问哪个chunkserver持有数据块的当前租约，以及其它副本的位置。如果没有chunkserver持有租约，master选择一个副本并授予其租约（图中未展示）。<br /></li>
+<li>Master回复主副本的标识以及其它（二级）副本的位置。客户端会缓存这些信息以备后续改动使用。只有当跟主副本无法通信或者主副本回复说它不再持有租约时，客户端才会才跟master联系。<br /></li>
+<li>客户端将数据推送到所有的副本。客户端可以随意选择推送到副本的先后顺序。每个chunkserver会将数据存储在内部的LRU缓存中，直到数据被使用或者过期。通过将数据流和控制流分开，我们可以根据网络拓扑结构来安排耗时的数据流，不用关心哪个chunkserver是主副本。3.2节会对此做进一步讨论。<br /></li>
+<li>一旦所有副本都确认收到了数据，客户端会给主副本发送一个写请求。这个请求会标识出刚才推送到所有副本的数据。主副本会给收到的所有改动（可能来自多个客户端）指定连续的顺序号，这提供了需要的串行化。主副本会按照指定的顺序来将所有改动应用到本地状态。<br /></li>
+<li>主副本会将上面的写请求转发到所有的二级副本。每个二级副本会按照主副本指定的顺序执行改动。<br /></li>
+<li>二级副本会回复主副本，表明它们已经完成了操作。<br /></li>
+<li>主副本会回复客户端。所有副本上的所有错误都会报告给客户端。如果出现错误，写入可能在主副本和某些二级副本上写入成功了（如果在主副本上失败了，主副本就不可能给写入操作指定一个顺序号并转发）。客户端请求就被认为是失败了，被修改的文件区域会变成不一致状态。我们的客户端代码对此的处理方式是重试失败的改动。它会在步骤3到7上先重试几次，失败之后再从头开始执行写入。<br /></li>
+</ol>
+
+
+<p>
+如果应用写入的数据很大或者跨了多个数据块，GFS客户端代码会将其分成多个写入操作。这些写入操作会遵循上面描述的控制流，但是可能会互相交错或者被其它客户端的并发操作覆盖掉。因此，共享的文件区域最终可能会包含来自不同客户端的数据片段，但是所有副本都是一致的，因为所有副本上的操作都是按照同样的次序成功执行的。这会使得文件区域处于2.7节所述的一致但是不确定的状态。<br />
+</p>
+</div>
+</div>
+<div id="outline-container-3-2-数据流-data-flow" class="outline-3">
+<h3 id="3-2-数据流-data-flow">3.2 数据流（Data Flow)</h3>
+<div class="outline-text-3">
+<p>
+我们将数据流和控制流解耦以便充分利用网络。在控制流从客户端到主副本然后到所有二级副本的同时，数据以流水线方式沿着一条仔细选择的chunkserver链推送。我们的目标时充分利用每台机器的网络带宽，避开网络瓶颈和高延迟的链接，最小化推送数据的总体延迟。<br />
+</p>
+
+<p>
+为了充分利用每台机器的网络带宽，数据会沿着一条chunkserver链线性地推送，而不是以某种其它拓扑方式（例如，树型）来分发。因此，每台机器的出站带宽都会被用于尽可能会地传输数据，而不是同时分发给多个接收方。<br />
+</p>
+
+<p>
+为了尽可能避开网络瓶颈和高延迟链接（例如，交换机间的链路就有这两种特征），每台机器会将数据转发到网络拓扑中“最近”的机器。假设客户端要将数据推送到S1到S4这四个chunkserver。它将数据发送到最近的chunkserver，假设是S1。S1将数据转发到S2-S4中离它最近的一个，假设是S2。类似的，S2将数据转发到S3或者S4中距离更近的那个，以此类推。我们的网络拓扑结构足够简单，使用IP地址就可以精确地估计距离。<br />
+</p>
+
+<p>
+最后，我们通过TCP连接以流水线方式传输数据，以此来最小化延迟。一旦一个chunkserver收到了一些数据，它就立即开始转发。流水线方式对我们来说特别有帮助，因为我们使用全双工链路的交换网络。立即发送数据不会降低接收速率。在没有网络拥塞的情况下，传输B字节数据到R个副本的理论时间是B/T + RL，其中T是网络吞吐率，L是在两台机器间传输数据的延迟。我们的网络链接一般是100 Mbps（T），L远小于1ms。因此，理想情况下，1MB数据需要80ms左右就可以分发完成。<br />
+</p>
+</div>
+</div>
+<div id="outline-container-3-3-原子记录追加-atomic-record-appends" class="outline-3">
+<h3 id="3-3-原子记录追加-atomic-record-appends">3.3 原子记录追加（Atomic Record Appends）</h3>
+<div class="outline-text-3">
+<p>
+GFS提供了一个原子追加操作：记录追加（record append）。传统的写入操作是由客户端指定要写入数据的偏移位置。并发写同一个区域的操作不是可串行化的：被写入的区域最终可能会包含来自多个客户端的数据片段。但是在记录追加中，客户端只管数据。GFS会将数据以原子方式（例如，作为连续的字节序列）追加至少一次到由GFS选定的偏移位置，并将偏移位置返回给客户端。这类似Unix系统中向以O<sub>APPEND模式打开的文件中写数据</sub>，只不过在有多个并发写入者的情况下不会出现竞争。<br />
+</p>
+
+<p>
+我们的分布式应用大量使用记录追加，在这些应用中，不同机器上的很多客户端并发地追加数据到相同的文件。如果使用传统的写入方式，客户端需要额外使用复杂且代价高昂的同步，例如使用分布式锁管理器。在我们的工作负载中，这些文件经常作为多生产者－单消费者队列，或者保存来自许多不同客户端的归并结果。<br />
+</p>
+
+<p>
+记录追加是一种改动，遵循3.1节的控制流，只是在主副本上需要一点额外的逻辑。客户端将数据推送到所有包含文件最后数据块的副本，然后它回向主副本发送请求。主副本会检查看追加这个记录到当前数据块是否会使得数据块大小超出上限（64 MB）。如果会超出，主副本会填充当前数据块到最大容量，告诉二级副本也如此填充，并让客户端在下个数据块上重试此操作。（记录追加被限制一次最多追加数据块容量上限的1/4的数据，以保证在最差情况下，文件碎片在可接受的程度）如果不超过数据块容量上限（大部分情况下都是这样），主副本会追加数据到数据块，告诉二级副本在相同的偏移位置写数据，最后回复客户端操作成功。<br />
+</p>
+
+<p>
+如果记录追加在某个副本上失败了，客户端会重试此操作。结果是，同一数据块的副本可能包含不同的数据——可能有同一记录的完整或者部分数据的重复。GFS不保证所有副本是字节级一致的。它只保证数据作为原子单元写入至少一次。这个属性由一个简单的观察可以很容易推断出：操作如果报告成功了，数据一定已经在某个数据块的所有副本上的同样的偏移位置成功写入了。而且，写入之后，所有副本至少跟记录结尾一样长，因此，即便后来的主副本变了，将来的记录都会被分配更大的偏移位置或者一个不同的数据块。从我们一致性保证的角度来看，追加记录操作成功的文件区域其状态是确定的（因此也是一致的），然而，有交错的区域是不一致的（因此也是不确定的）。我们的应用可以处理不一致的区域，我们在2.7.2节对此讨论过。<br />
+</p>
+</div>
+</div>
+<div id="outline-container-3-4-快照-snapshot" class="outline-3">
+<h3 id="3-4-快照-snapshot">3.4 快照（Snapshot）</h3>
+<div class="outline-text-3">
+<p>
+快照操作可以几乎瞬间就生成一个文件或者目录树（“源” source）的拷贝，并且尽可能减少对正在执行的改动的影响。我们的用户用它来快速地创建大数据集的分支拷贝（并经常递归地创建那些拷贝的拷贝），或者在试验一些改动前生成当前状态的检查点，这些改动过后可以很容易提交或者回滚。<br />
+</p>
+
+<p>
+就像AFS[5]，我们使用标准的写时复制技术来实现快照。当master受到快照请求，它首先收回快照所涉及的文件的数据块上的所有未到期的租约。这会保证后续的所有到这些数据块的写操作都需要跟master交互来发现租约的持有者。这会使得master有机会首先创建数据块的一个新拷贝。<br />
+</p>
+
+<p>
+租约收回或者过期之后，master会记录操作到磁盘。然后master会应用这条日志记录到到内存中的状态，方式是创建（要生成快照的）源文件或者目录树的副本。新创建的快照文件跟源文件指向同样的数据块。<br />
+</p>
+
+<p>
+生成快照之后，客户端首次要写数据块C的时候，它会向master请求当前的租约持有者。Master会注意到数据块C的引用计数超过1。它会推迟回复客户端请求，选择一个新的数据块C‘。然后Master会要求所有有C当前副本的chunkserver创建一个新的副本C’。通过在原数据块所在的chunkserver上创建新的数据块，我们能保证数据可以在本地复制，不需要经过网络（我们的磁盘速度是100MB以太网速度的3倍）。此后，请求处理起来就跟其它数据块一样：master将租约授予数据块C‘的一个副本，然后回复客户端，这时客户端就可以正常写数据块了，客户端不知道在写的数据块是从现有的数据块新创建出来的。<br />
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-4-master操作-master-operation" class="outline-2">
+<h2 id="4-master操作-master-operation">4 Master操作（MASTER OPERATION）</h2>
+<div class="outline-text-2">
+<p>
+Master执行所有的名字空间操作。另外，它会管理整个系统的数据块副本：确定副本放在哪儿，创建新的数据块以及副本，协调整个系统的活动来保证数据块完全复制，所有chunkserver间的负载均衡，以及回收不用的存储。我们现在逐一讨论这些主题。<br />
+</p>
+</div>
+<div id="outline-container-4-1-名字空间管理和锁-namespace-management-and-locking" class="outline-3">
+<h3 id="4-1-名字空间管理和锁-namespace-management-and-locking">4.1 名字空间管理和锁（Namespace Management and Locking）</h3>
+<div class="outline-text-3">
+<p>
+Master的许多操作会花费较长时间：例如，快照操作要撤销快照涉及的所有数据块的chunkserver租约。我们不想延迟其它正在运行的master操作。因此，我们允许多个操作同时执行，并使用名字空间区域锁来保证适当的串行化。<br />
+</p>
+
+<p>
+不像很多其它的传统文件系统，GFS没有用于列出目录中所有文件的目录级（per-directory)的数据结构。GFS也不支持文件或者目录别名（类似Unix系统中的硬链接或符号链接）。逻辑上，GFS将名字空间表示为一个查找表，查找表会将路径全名映射到元数据。使用前缀压缩，这个表可以高效的放到内存里。名字空间树的每个节点（绝对文件名或者绝对目录名）都有一个关联的读写锁。<br />
+</p>
+
+<p>
+每个master操作在执行前都要获取一组锁。一般来说，如果操作涉及/d1/d2/&#x2026;/dn/leaf，master要获取目录名/d1，/d1/d2，&#x2026;，/d1/d2/&#x2026;/dn上的读锁，以及完整路径名/d1/d2/&#x2026;/dn/leaf上的读锁或者写锁。注意leaf可能是文件或者目录，取决于要执行的操作。<br />
+</p>
+
+<p>
+现在我们要展示在/home/user正在生成快照到/save/user时，这种锁机制如何避免文件/home/user/foo被创建。快照操作会获取/home和/save的读锁，/home/user和/save/user的写锁。文件创建操作要获取/home和/home/user的读锁，以及/home/user/foo的写锁。这两个操作会被正确序列化，因为它们尝试在/home/user上获取有冲突的锁。文件创建不需要获取上级目录的写锁，因为没有“目录”，或者类似inode的数据结构需要保护不被修改。目录名上的读锁足够用来保护上级目录不被删除。<br />
+</p>
+
+<p>
+这种枷锁模式的一个优点是它允许在同一个目录执行并发改动。例如，可以在同一个目录下并发创建多个文件：每个操作要获取目录名的读锁和文件名的写锁。目录名上的读锁可以放置目录被删除、改名或者生成快照。文件名上的写锁可以将两个创建同名文件的操作串行化。<br />
+</p>
+
+<p>
+因为名字空间可以有很多节点，读写锁对象采用惰性分配，一旦不需要了就会被删除。另外，锁按照一致的全序顺序来获取以避免死锁：它们首先按照名字空间树的层级来排序，在同一级会按照字典序来排序。<br />
+</p>
+</div>
+</div>
+<div id="outline-container-4-2-副本放置-replica-placement" class="outline-3">
+<h3 id="4-2-副本放置-replica-placement">4.2 副本放置（Replica Placement）</h3>
+<div class="outline-text-3">
+<p>
+一个GFS集群在多个层面上都是高度分布式的。它一般包含几百个分布在许多机架上的chunkserver。有几百个来自相同或不同机架的客户端会访问这些chunkserver。来自不同机架的两台机器间的通讯可能需要跨过多个网络交互机。另外，机架的出/入带宽可能比机架内所有机器的总带宽要小。多层级分布在可扩展性、可靠性和可用性方面给分布式数据带来了独特的挑战。<br />
+</p>
+
+<p>
+数据块副本放置策略有两个目的：最大化数据可靠性和可用性，最大化网络带宽利用率。要达到这两点，只是将副本分布在多台机器上来防备磁盘或者机器故障以及充分利用每台机器的网络带宽是不够的。我们还必须要将数据块的副本分布在多个机架上。这会保证即便是整个机架损坏或者离线（例如，因为网络交换机或者电源线路等共享资源的故障），数据块的某些副本也可能幸存下来继续可用。这也意味着某个数据块的网络流量，尤其是读，能够利用多个机架的总带宽。另一方面，写入流量也会经过多个机架，这是我们愿意做的一个折衷。<br />
+</p>
+</div>
+</div>
+<div id="outline-container-4-3-创建-重新复制-再平衡-creation-re-replication-rebalancing" class="outline-3">
+<h3 id="4-3-创建-重新复制-再平衡-creation-re-replication-rebalancing">4.3 创建，重新复制，再平衡（Creation, Re-replication, Rebalancing）</h3>
+<div class="outline-text-3">
+<p>
+三种原因会创建数据块副本：数据块创建，重新复制，以及再平衡。<br />
+</p>
+
+<p>
+Master创建一个数据块时，它要选择在哪儿放置初始的空副本。它会考虑几个因素。（1）我们想把新数据块放在磁盘利用率低于平均值的chunkserver上。久而久之，chunkserver的磁盘利用率就会均衡。（2）我们想限制每个chunkserver上“最近”创建的数据块数目。创建数据块没什么开销，但是创建意味着随之而来的大量的写入流量，因为数据块就是为了写入而创建的，并且在我们的一次追加、多次读取的工作负载种，数据块在成功写入之后基本上就变成只读的了。（3）如上面所讨论的，我们想将数据块的副本分布到多个机架。<br />
+</p>
+
+<p>
+当数据块的可用副本数降低到某个用户指定目标之下，Master会尽快重新创建数据块的副本。这可能是由于几个原因：一个chunkserver不可用了，chunkserver报告说副本可能被破坏了，chunkserver的磁盘由于错误而被禁用了，或者副本数目标增加了。需要重建副本的每个数据块根据几个因素来确定优先级。一是当前副本数跟副本目标数差距多大。例如，失去两个副本的数据块比失去一个副本的数据块优先级更高。另外，我们优先重建在用的数据块的副本，而不是当前已经删除的文件（见4.4节）的数据块。最后，为了最小化故障对当前运行中的应用的影响，我们会提高阻塞客户端进展的数据块副本重建的优先级。<br />
+</p>
+
+<p>
+Master选择优先级最高的数据块，通知某个chunkserver直接从已存在的有效的副本复制数据块数据来克隆数据块。新的副本放置遵循类似数据块创建时的放置规则：均衡磁盘空间利用，限制单个chunkserver上的活跃的克隆操作数量，将副本分布到多个机架。为了保证克隆流量不会过于影响客户端流量，master会同时限制集群和每个chunkserver的活跃克隆操作数。另外，每个chunkserve会限制用于每个克隆操作的带宽，方式是对其读源chunkserver的请求限流。<br />
+</p>
+
+<p>
+最后，master会周期性地对副本做再平衡：它会检查当前的副本分布，移动副本以提高磁盘利用率和负载均衡。另外，凭借这个过程，master会逐渐填充一个新的chunkserver，而不是立刻用数据块和随之而来的巨大的写入流量压跨它。新副本的放置方式跟上面讨论的类似。另外，master也必须选择要移动哪个现有的副本。一般来说，它倾向于移动空闲磁盘空间低于平均值的chunkserver上的副本，这样可以均衡磁盘空间使用。<br />
+</p>
+</div>
+</div>
+<div id="outline-container-4-4-垃圾回收-garbage-collection" class="outline-3">
+<h3 id="4-4-垃圾回收-garbage-collection">4.4 垃圾回收（Garbage Collection）</h3>
+<div class="outline-text-3">
+<p>
+文件被删除后，GFS并不会马上回收可用的物理空间。它会采用惰性的方式，只在常规的垃圾回收期间在文件和数据块两个层面进行回收。我们发现这种方式使得系统更简单，也更可靠。<br />
+</p>
+</div>
+<div id="outline-container-4-4-1-机制-mechanism" class="outline-4">
+<h4 id="4-4-1-机制-mechanism">4.4.1 机制（Mechanism）</h4>
+<div class="outline-text-4">
+<p>
+当文件被应用删除，master会像对待其它改动一样立刻记录删除日志。但是，它并不会立即回收资源，文件只是被改成一个隐藏的名字，名字中包含删除的时间戳。在master进行常规的文件系统名字空间扫描过程中，它会移除超过三天（间隔时间可以配置）的这类隐藏文件。在此之前，文件仍然可以用新名字来读，也可以改回正常的名字来取消删除。当隐藏文件被从名字空间移除，它在内存中的元数据也会被清楚。这实际上切断了它跟所有数据块之间的连接。<br />
+</p>
+
+<p>
+在一个类似的对数据块名字空间做的常规扫描中，master会识别孤儿数据块（例如，从任何文件都读不到的数据块）并删除那些数据块的元数据。在跟master进行的常规HeartBeat通信中，每个chunkserver都会将它上面的数据块的一个子集报告给master，master会把不存在元数据的数据块的标识符返回。chunkserver自行删除这些数据块的副本。<br />
+</p>
+</div>
+</div>
+<div id="outline-container-4-4-2-讨论-discussion" class="outline-4">
+<h4 id="4-4-2-讨论-discussion">4.4.2 讨论（Discussion）</h4>
+<div class="outline-text-4">
+<p>
+尽管在编程语言中，分布式垃圾回收是一个很难的问题，需要复杂的解决方法，在我们的系统中却是很简单的。我们可以很容易识别到数据块的所有引用：它们在由master独自维护的文件到数据块映射中。我们也可以很容易识别所有的数据块副本：它们是保存在每个chunkserver上指定目录下的Linux文件。Master不知道的副本就是“垃圾”。<br />
+</p>
+
+<p>
+通过垃圾回收来回收存储比起立即删除有几个优势。首先，在组件故障很常见的大规模分布式系统中，垃圾回收更简单更可靠。数据块创建可能在部分chunkserver上成功，在其它chunkserver上失败，留下一些master不知道的副本文件。副本删除消息可能会丢失，master得记住在失败时重发消息，不管是master的失败还是chunkserver的失败。垃圾回收提供了一种统一且可靠的方式来清理无用的副本。第二，垃圾回收将存储回收融入到master的常规的后台活动中，例如名字空间扫描和跟chunkserver的握手。因此，它是批量处理的，成本被摊销了。另外，只有在master相对空闲的时候才会执行。Master可以迅速地响应客户端的需要及时处理的请求。第三，延迟回收可以防止意外的、不可撤销的删除。<br />
+</p>
+
+<p>
+在我们的经验中，延迟回收的主要缺点是在空间紧张的时候，它会妨碍用户微调空间使用。那些重复创建和删除临时文件的应用不能马上重用存储空间。我们的解决方法是：如果被删除的文件又被明确地删除了一次，我们就会加速空间回收。我们也允许使用者对名字空间的不同部分使用不同的分配和回收策略。例如，用户可以指定某些目录下的所有文件的数据块都没有副本，被删除的文件立即、永久从文件系统中移除。<br />
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-4-5-过期副本检测-stale-replica-detection" class="outline-3">
+<h3 id="4-5-过期副本检测-stale-replica-detection">4.5 过期副本检测（Stale Replica Detection）</h3>
+<div class="outline-text-3">
+<p>
+如果chunkserver发生故障而错过数据块改动，数据块副本就会过期。对每个数据块，master会维护一个 <b>数据块版本号（chunk version number）</b> 来区分最新的和过期的副本。<br />
+</p>
+
+<p>
+当master授予一个数据块新租约时，它会增大其版本号，并通知最新的那些副本。Master和这些副本都会持久化记录这个新版本号。这发生在通知客户端之前，因此客户端还没有开始写数据。如果另一个副本当前不可用，它的数据块版本号就不会增加。在chunkserver重启并报告它的数据块其对应版本号的时候，master就会检测到这个chunkserver有过期的副本。如果master收到比其记录的版本号更大的版本号，master会假定它自己在授出租约时发生了故障，并采纳这个更大的版本号最为最新值。<br />
+</p>
+
+<p>
+Master在常规垃圾回收中移除过期的副本。在此之前，在回复客户端的数据块信息请求时，它会认为这个过期的副本根本不存在。另一个保护措施是，master在告知客户端哪个chunkserver持有某个数据块的租约时会包含数据块版本号，在它通知chunkserver从另一个chunkserver通过克隆操作读数据块时也包含数据块版本号。客户端或者chunkserver在执行操作时会校验版本号，因此它总是访问最新的数据。<br />
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-5-容错和诊断-fault-tolerance-and-diagnosis" class="outline-2">
+<h2 id="5-容错和诊断-fault-tolerance-and-diagnosis">5 容错和诊断（FAULT TOLERANCE AND DIAGNOSIS）</h2>
+<div class="outline-text-2">
+<p>
+设计这个系统的最大挑战之一是处理经常发生的组件故障。组件的质量和数量一起让这些问题不再是偶然：我们不能完全相信这些机器，也不能完全相信磁盘。组件故障会导致系统不可用，或者更糟的情况：被损坏的数据。我们要讨论我们是如何对付这些挑战的，我们内建于系统的工具，当问题必然发生的时候这些工具用于诊断问题。<br />
+</p>
+</div>
+<div id="outline-container-5-1-高可用-high-availability" class="outline-3">
+<h3 id="5-1-高可用-high-availability">5.1 高可用（High Availability）</h3>
+<div class="outline-text-3">
+<p>
+一个GFS集群的几百台服务器中，总有一些会随时变得不可用。我们使用两个简单但有效的测略来保证系统整体高可用：快速恢复和复制。<br />
+</p>
+</div>
+<div id="outline-container-5-1-1-快速恢复-fast-recovery" class="outline-4">
+<h4 id="5-1-1-快速恢复-fast-recovery">5.1.1 快速恢复（Fast Recovery）</h4>
+<div class="outline-text-4">
+<p>
+Master和chunkserver都被设计成在几秒内就可以恢复状态启动起来，不管上次是怎么结束的。事实上，我们不区分正常结束和异常结束；服务程序经常被kill掉进程而结束运行。客户端和其它服务程序正在进行中的请求会出现超时，它们会重连重启的服务，然后重试。6.2.2节展示了观察到的启动时间。<br />
+</p>
+</div>
+</div>
+<div id="outline-container-5-1-2-数据块复制-chunk-replication" class="outline-4">
+<h4 id="5-1-2-数据块复制-chunk-replication">5.1.2 数据块复制（Chunk Replication）</h4>
+<div class="outline-text-4">
+<p>
+前面我们已经讨论过，每个数据块都会被复制到不同机架上的多个chunkserver。用户可以指定名字空间的不同部分使用不同的复制级别。默认值是3。在chunkserver离线或者通过验证校验和检测到副本有损坏时（见5.2节），Master会根据需要来克隆现有的副本以保证每个数据块都被充分复制了。虽然复制工作得很好，我们也在探索其它的跨服务器的冗余形式，例如奇偶校验码或者纠删编码，来满足我们日益增长的只读存储需求。虽然具有挑战性，我们期望能以可控的方式在我们非常松耦合的系统中实现这些更复杂的冗余模式，因为我们的流量主要追加和读，而不是小的随机写。<br />
+</p>
+</div>
+</div>
+<div id="outline-container-5-1-3-master复制-master-replication" class="outline-4">
+<h4 id="5-1-3-master复制-master-replication">5.1.3 Master复制（Master Replication）</h4>
+<div class="outline-text-4">
+<p>
+为了可靠性，Master的状态也复制了。它的操作日志和检查点会复制到多台机器上。只有在相关的日志记录被写入本地磁盘和所有master副本之后，对状态的改动才被认为是已提交的。为了简洁，单个master进程负责处理所有的改动以及在内部改变系统状态的后台任务（例如垃圾回收）。当失败时，它几乎立刻纠能重启。如果它的机器或者磁盘发生故障，处于GFS外部的监控设施会使用操作日志副本在其它地方启动一个新的master进程。客户端只会使用master的规范名称（例如，gfs-test），这个规范名称是DNS的别名，在master迁移到另一台机器时可以修改。<br />
+</p>
+
+<p>
+另外，在主master宕机时，“影子”master可以提供对文件系统的只读访问。它们是影子，不是镜像，也就是它们可能会稍微延迟于主master，一般是延迟不到一秒。对于不怎么改动的文件，或者不介意稍微过期结果的应用来说，它们提高了读可用性。实际上，因为文件内容是从chunkserver上读的，应用不会读到过期数据。可能会在一个很短的时间窗口内出现过期的是文件元数据，例如目录内容或者访问控制信息。<br />
+</p>
+
+<p>
+为了保证及时更新，影子master会读持续增加的操作日志副本，将改动按照跟主master同样的方式应用到自己的数据结构中。同主master类似，它在启动时（启动后很少）也会向chunkserver询问数据块副本的位置，并同chunkserver经常交换握手消息来监控它们的状态。它只在副本位置更新（由于主master创建或者删除副本）这一方面依赖主master。<br />
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-5-2-数据完整性-data-integrity" class="outline-3">
+<h3 id="5-2-数据完整性-data-integrity">5.2 数据完整性（Data Integrity）</h3>
+<div class="outline-text-3">
+<p>
+每个chunkserver使用校验和来检测数据损坏。考虑到GFS集群经常有分布在几百台机器上的数千块磁盘，它经常会遇到磁盘故障，导致在读写通道上都出现数据损坏或者丢失（第7节给出了一个原因）。我们可以使用其它数据块副本来恢复损坏的数据，但是以跨chunkserver比较副本的方式来检测数据损坏是不合适的。另外，不一致的副本可能是正常的：GFS改动的语义，尤其是前面讨论的原子记录追加，不保证完全一致的副本。因此，每个chunkserver必须通过维护校验和来独立地校验本地副本的数据完整性。<br />
+</p>
+
+<p>
+每个数据块都会划分为64KB大小的块（block）。每个块都有一个32位的校验和。跟其它元数据类似，校验和会放到内存中，并持久化记录在日志里，跟用户数据分开。<br />
+</p>
+
+<p>
+对读数据来说，在返回数据给请求者之前，chunkserver会校验跟待读取区域有重叠的块的校验和，不管读取者是一个客户端还是另一个chunkserver。因此，chunkserver不会把损坏的数据传播给其它机器。如果一个块跟记录的校验和不一致，chunkserver会返回错误给请求者，并报告给master。请求者会都其它的副本，master则会从其它副本克隆数据块。在新的有效的副本生成之后，master会通知汇报过问题的chunkserver删除损坏的副本。<br />
+</p>
+
+<p>
+校验和对读性能几乎没有影响，原因如下。因为我们的大部分读至少都会跨多个块，我们只需要读和校验相对很少的一部分额外数据。GFS客户端代码进一步减少了这些影响，它们会尝试将读对齐到校验块的边界。另外，在chunkserver上查找和对比校验和不需要任何I/O，校验和计算经常可以在做I/O的时候顺便完成。<br />
+</p>
+
+<p>
+对于追加数据到数据块结尾（而不是覆写已有数据的写操作）的写操作，校验和计算被高度优化了，因为它们是我们工作负载的主要部分。我们会增量更新最新的未写满的块的校验和，并重新计算新写满的块的校验和。即便最新的未写满的块有数据损坏，而我们现在没有检测出来，新的校验和跟数据也是不一致的，下次读的时候数据损坏就可以照常检测出来。<br />
+</p>
+
+<p>
+相反的，如果写操作覆写了数据块的现有区域，我们必须读取并检验这个区域第一块和最后一块，然后再执行写操作，最后计算并记录新的校验和。如果在部分被覆写之前我们不校验第一块和最后一块，新的校验和可能会掩盖未被覆写那部分中已出现的数据损坏。<br />
+</p>
+
+<p>
+在空闲时，chunkserver可以扫描并检验不活跃的数据块的内容。这样我们可以检测很少被读的数据块的损坏。一旦检测出了损坏，master可以创建未损坏的副本，并删除有问题的。这可以防止不活跃但是数据已损坏的数据块副本误导master，让master误以为一个数据块有足够多的有效副本。<br />
+</p>
+</div>
+</div>
+<div id="outline-container-5-3-诊断工具-diagnostic-tools" class="outline-3">
+<h3 id="5-3-诊断工具-diagnostic-tools">5.3 诊断工具（Diagnostic Tools）</h3>
+<div class="outline-text-3">
+<p>
+大量的、细节丰富的诊断日志在问题隔离、调试以及性能分析方面能够提供无法估量的帮助，而只需承担最小的代价。没有日志就很难理解机器之间短暂的、无法重复的交互。GFS服务器生成的日志可以记录很多重要的事件（例如chunkserver上线/下线）以及所有的RPC请求和响应。这些诊断日志可以随意删除而不影响系统的正确性。但是，只要存储空间允许，我们就会尽量留着这些日志。<br />
+</p>
+
+<p>
+RPC日志包含具体的请求和响应，但不包括读写的文件数据。通过匹配请求和响应，整理不同机器上的RPC记录，我们就可以重建完整的交互历史来诊断问题。日志也用来作为负载测试和性能分析的轨迹。<br />
+</p>
+
+<p>
+记录日志带来的性能影响是很小的（跟带来的收益比起来跟是微不足道），因为这些日志是以顺序、异步的方式写的。最近的事件也会保存在内存中用于持续的线上监控。<br />
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-待续" class="outline-2">
+<h2 id="待续">待续。。</h2>
+<div class="outline-text-2">
+<p>
+后面主要是基准测试的报告，后面有时间再翻译。<br />
+</p>
+</div>
+</div>
+
+    </section>
+  </article>
+
+    </main>
+
+    
+    
+      <footer>
+        使用
+        <a href="https://emacs.love/weblorg" target="_blank">
+          weblorg
+        </a>
+        创建
+      </footer>
+    
+
+  </body>
+</html>
