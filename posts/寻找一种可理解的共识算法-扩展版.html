@@ -21,7 +21,6 @@
   <meta name="twitter:card" content="summary_large_image">
 
     <link rel="stylesheet" href="https://zbelial.github.io/static/main.css" type="text/css" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora&family=Space+Mono&display=swap" />
     
   </head>
   <body>
@@ -38,6 +37,7 @@
           <ul class="menu">
             <li><a href="https://zbelial.github.io/about.html">关于(about)</a></li>
             <li><a href="https://zbelial.github.io/">首页(blog)</a></li>
+            <li><a href="https://github.com/zbelial">Github</a></li>
           </ul>
         </nav>
       </header>
@@ -113,7 +113,7 @@ Raft是一个共识算法，用来管理复制日志（relicated log）。它等
 <h2 id="1-引言-introduction">1 引言（Introduction）</h2>
 <div class="outline-text-2">
 <p>
-共识算法允许多台机器作为一个统一的整体，可以在部分机器失效（failure）的情况下继续运行。因此，它们在构建可靠的大规模软件系统方面发挥着关键作用。在过去的十年中，Paxos<a href="#org35fcd30">15</a> <a href="#org189f693">16</a>是被讨论最多的共识算法：大多数共识实现基于Paxos或受它影响，Paxos也成了教学生学习共识算法的主要工具。<br />
+共识算法允许多台机器作为一个统一的整体，可以在部分机器失效（failure）的情况下继续运行。因此，它们在构建可靠的大规模软件系统方面发挥着关键作用。在过去的十年中，Paxos<a href="#orgf60dbd3">15</a> <a href="#org72d9eb8">16</a>是被讨论最多的共识算法：大多数共识实现基于Paxos或受它影响，Paxos也成了教学生学习共识算法的主要工具。<br />
 </p>
 
 <p>
@@ -129,7 +129,7 @@ Raft是一个共识算法，用来管理复制日志（relicated log）。它等
 </p>
 
 <p>
-Raft在很多方面跟已有的共识算法很相似（特别是Oki和Liskov的Viewstamped Replication<a href="#org2ae6ce5">29</a> <a href="#org45d23d2">22</a>），但它有几个新奇的特性：<br />
+Raft在很多方面跟已有的共识算法很相似（特别是Oki和Liskov的Viewstamped Replication<a href="#org85d7afe">29</a> <a href="#org2c06513">22</a>），但它有几个新奇的特性：<br />
 </p>
 <ul class="org-ul">
 <li>强leader<br />
@@ -155,11 +155,11 @@ Raft变更集群成员的机制使用了联合共识（joint consensus）的方�
 <h2 id="2-复制状态机-replicated-state-machines">2 复制状态机（Replicated state machines）</h2>
 <div class="outline-text-2">
 <p>
-共识算法一般出现在复制状态机的场景中<a href="#orgad8dad3">37</a>。在该方法中，多台服务器上的状态机处理相同状态的完全一致的副本，在某些服务器宕机的情况下也能继续运行。复制状态机用于处理分布式系统中的各种各样的容错问题。例如，有单个集群leader的大规模系统，例如GFS<a href="#org15b30cb">8</a>，HDFS<a href="#orgf390e94">38</a>，以及RAMCloud<a href="#org58f8ab7">33</a>，一般会使用单独的复制状态机来管理leader选举，存储在leader崩溃时也不会丢失的配置信息。复制状态机的例子包括Chubby<a href="#orgd139e9c">2</a>和ZooKeeper<a href="#org4e5f417">11</a>。<br />
+共识算法一般出现在复制状态机的场景中<a href="#org343fc82">37</a>。在该方法中，多台服务器上的状态机处理相同状态的完全一致的副本，在某些服务器宕机的情况下也能继续运行。复制状态机用于处理分布式系统中的各种各样的容错问题。例如，有单个集群leader的大规模系统，例如GFS<a href="#org3da9bbb">8</a>，HDFS<a href="#org491492f">38</a>，以及RAMCloud<a href="#org2cd7dae">33</a>，一般会使用单独的复制状态机来管理leader选举，存储在leader崩溃时也不会丢失的配置信息。复制状态机的例子包括Chubby<a href="#orgb37ef69">2</a>和ZooKeeper<a href="#org17d01f5">11</a>。<br />
 </p>
 
 
-<div id="org89e52bf" class="figure">
+<div id="org82ded4a" class="figure">
 <p><img src="images/Raft/Raft_Extended_Figure_01.png" alt="Raft_Extended_Figure_01.png" width="80%" /><br />
 </p>
 </div>
@@ -188,11 +188,11 @@ Raft变更集群成员的机制使用了联合共识（joint consensus）的方�
 <h2 id="3-paxos的问题-what-s-wrong-with-paxos">3 Paxos的问题？（What's wrong with paxos?）</h2>
 <div class="outline-text-2">
 <p>
-过去十年，Leslie Lamport的Paxos协议<a href="#org35fcd30">15</a>几乎就是共识的同义词：课程里教的基本上是它，大多数的共识实现以它为起点。Paxos首先定义了一个能够对单个决定（例如，复制单条日志条目）达成一致的协议。我们将这个协议称为单决议Paxos（single-decree Paxos）。然后，Paxos将单决议Paxos协议的多个实例结合起来以便对一系列的决定（例如一份日志）达成一致（multi-Paxos）。Paxos能保证安全性和活性（liveness），也支持改变集群成员。它的安全性已经被证明，正常情况下它性能也够好。<br />
+过去十年，Leslie Lamport的Paxos协议<a href="#orgf60dbd3">15</a>几乎就是共识的同义词：课程里教的基本上是它，大多数的共识实现以它为起点。Paxos首先定义了一个能够对单个决定（例如，复制单条日志条目）达成一致的协议。我们将这个协议称为单决议Paxos（single-decree Paxos）。然后，Paxos将单决议Paxos协议的多个实例结合起来以便对一系列的决定（例如一份日志）达成一致（multi-Paxos）。Paxos能保证安全性和活性（liveness），也支持改变集群成员。它的安全性已经被证明，正常情况下它性能也够好。<br />
 </p>
 
 <p>
-遗憾的是，Paxos有两个显著的缺点。第一个缺点是Paxos非常难理解。完整的解释<a href="#org35fcd30">15</a>出了名的模糊；很少有人能理解它（而且都需要付出巨大努力）。因此，多次有人尝试用更简单的术语来解释Paxos<a href="#org189f693">16</a> <a href="#org0935326">20</a> <a href="#orgab160cc">21</a>。这些解释针对的是single-decree Paxos，即便如此，这也是项很有挑战的工作。在对NSDI 2012参会者做的非正式调查中，我们发现几乎没人觉得Paxos容易，即便是经验丰富的研究者也是如此。我们自己努力研究过Paxos；直到读过几个简化的解释，并设计了我们自己的替代协议之后，我们才完全理解了整个协议，这个过程花费了差不多一年。<br />
+遗憾的是，Paxos有两个显著的缺点。第一个缺点是Paxos非常难理解。完整的解释<a href="#orgf60dbd3">15</a>出了名的模糊；很少有人能理解它（而且都需要付出巨大努力）。因此，多次有人尝试用更简单的术语来解释Paxos<a href="#org72d9eb8">16</a> <a href="#orgeb60593">20</a> <a href="#orgcddfbe6">21</a>。这些解释针对的是single-decree Paxos，即便如此，这也是项很有挑战的工作。在对NSDI 2012参会者做的非正式调查中，我们发现几乎没人觉得Paxos容易，即便是经验丰富的研究者也是如此。我们自己努力研究过Paxos；直到读过几个简化的解释，并设计了我们自己的替代协议之后，我们才完全理解了整个协议，这个过程花费了差不多一年。<br />
 </p>
 
 <p>
@@ -200,7 +200,7 @@ Raft变更集群成员的机制使用了联合共识（joint consensus）的方�
 </p>
 
 <p>
-Paxos的第二个问题是它没有为构建实用的实现提供良好的基础。一个原因是multi-Paxos并没有广泛被认可的算法。Lamport的描述基本都是关于单Paxos；他粗略地给出了由单Paxos到多Paxos的可能方式，但缺少很多细节。有几个完善和优化Paxos的尝试，例如<a href="#org26f47a5">26</a>，<a href="#orge08adcf">39</a>和<a href="#orgd95ae63">13</a>，但它们每个都不一样，跟Lamport的粗略描述也不同。Chubby<a href="#org1b86ac4">4</a>等系统实现了类似Paxos的算法，但它们的多数细节都没有公开。<br />
+Paxos的第二个问题是它没有为构建实用的实现提供良好的基础。一个原因是multi-Paxos并没有广泛被认可的算法。Lamport的描述基本都是关于单Paxos；他粗略地给出了由单Paxos到多Paxos的可能方式，但缺少很多细节。有几个完善和优化Paxos的尝试，例如<a href="#org7a3af6f">26</a>，<a href="#org1de90fe">39</a>和<a href="#orgbe10148">13</a>，但它们每个都不一样，跟Lamport的粗略描述也不同。Chubby<a href="#org7372df4">4</a>等系统实现了类似Paxos的算法，但它们的多数细节都没有公开。<br />
 </p>
 
 <p>
@@ -212,7 +212,7 @@ Paxos的第二个问题是它没有为构建实用的实现提供良好的基础
 </p>
 <blockquote>
 <p>
-Paxos算法的描述和现实系统的需求之间有着巨大的鸿沟&#x2026;最终实现的系统将会基于一个未经证明的协议<a href="#org1b86ac4">4</a>。<br />
+Paxos算法的描述和现实系统的需求之间有着巨大的鸿沟&#x2026;最终实现的系统将会基于一个未经证明的协议<a href="#org7372df4">4</a>。<br />
 </p>
 </blockquote>
 
@@ -251,7 +251,7 @@ Raft是管理复制日志（replicated log）的算法，日志的格式在第2�
 </p>
 
 
-<div id="org84e5fb3" class="figure">
+<div id="org925d176" class="figure">
 <p><img src="images/Raft/Raft_Extended_Figure_02.png" alt="Raft_Extended_Figure_02.png" width="80%" /><br />
 </p>
 </div>
@@ -274,7 +274,7 @@ Leader必须从客户端接收日志条目，复制到整个集群，强制其�
 
 
 
-<div id="orge03c26a" class="figure">
+<div id="org980d3fc" class="figure">
 <p><img src="images/Raft/Raft_Extended_Figure_03.png" alt="Raft_Extended_Figure_03.png" width="80%" /><br />
 </p>
 </div>
@@ -303,7 +303,7 @@ Leader绝不会覆盖或者删除日志中的条目；它只会追加新日志�
 </p>
 
 
-<div id="orgf31e780" class="figure">
+<div id="org60962ec" class="figure">
 <p><img src="images/Raft/Raft_Extended_Figure_04.png" alt="Raft_Extended_Figure_04.png" width="80%" /><br />
 </p>
 </div>
@@ -313,13 +313,13 @@ Raft将时间划分为如图5所示的任意长度的term。Term用连续的整�
 </p>
 
 
-<div id="org1cb1f37" class="figure">
+<div id="orgea0561d" class="figure">
 <p><img src="images/Raft/Raft_Extended_Figure_05.png" alt="Raft_Extended_Figure_05.png" width="80%" /><br />
 </p>
 </div>
 
 <p>
-不同服务器可能在不同的时间观察到term变更，在某些情况下，一台服务器可能不会观察到某次选举甚至是整个term。在Raft中，term充当逻辑时钟<a href="#org560225f">14</a>，服务器靠它来检测过时的信息，例如旧term的leader。 <b>每个服务器都会存储当前term编号</b> ，此编号随时间单调增大。服务器在通信的时候会交换当前term；如果一台服务器的当前term比另一台的小，它就会将term更新成更大的那个。如果一个candidate或leader发现它的term过期了，它会立刻恢复到follower状态。如果一台服务器收到的请求中带的term过期了，它就会拒绝这个请求。<br />
+不同服务器可能在不同的时间观察到term变更，在某些情况下，一台服务器可能不会观察到某次选举甚至是整个term。在Raft中，term充当逻辑时钟<a href="#orgc642fe7">14</a>，服务器靠它来检测过时的信息，例如旧term的leader。 <b>每个服务器都会存储当前term编号</b> ，此编号随时间单调增大。服务器在通信的时候会交换当前term；如果一台服务器的当前term比另一台的小，它就会将term更新成更大的那个。如果一个candidate或leader发现它的term过期了，它会立刻恢复到follower状态。如果一台服务器收到的请求中带的term过期了，它就会拒绝这个请求。<br />
 </p>
 
 <p>
@@ -373,7 +373,7 @@ Leader被选出后就开始处理客户端请求。每个客户端请求包含�
 </p>
 
 
-<div id="org58ce65c" class="figure">
+<div id="org16c38fa" class="figure">
 <p><img src="images/Raft/Raft_Extended_Figure_06.png" alt="Raft_Extended_Figure_06.png" width="80%" /><br />
 </p>
 </div>
@@ -400,7 +400,7 @@ Leader决定什么时候可以将日志条目应用到状态机；这样的日�
 </p>
 
 
-<div id="orgef672df" class="figure">
+<div id="org1b44e67" class="figure">
 <p><img src="images/Raft/Raft_Extended_Figure_07.png" alt="Raft_Extended_Figure_07.png" width="80%" /><br />
 </p>
 </div>
@@ -458,7 +458,7 @@ Raft通过比较日志中末端条目的索引和term来确定两个日志中哪
 </p>
 
 
-<div id="org8f7fb9d" class="figure">
+<div id="org13e4fb9" class="figure">
 <p><img src="images/Raft/Raft_Extended_Figure_08.png" alt="Raft_Extended_Figure_08.png" width="80%" /><br />
 </p>
 </div>
@@ -484,7 +484,7 @@ Raft之所以在提交规则中承担这额外的复杂性，是因为leader在�
 </p>
 
 
-<div id="org1e3ad11" class="figure">
+<div id="orgf0f748b" class="figure">
 <p><img src="images/Raft/Raft_Extended_Figure_09.png" alt="Raft_Extended_Figure_09.png" width="80%" /><br />
 </p>
 </div>
@@ -555,13 +555,13 @@ Leader选举是Raft算法中特别依赖计时的部分。只要系统满足如�
 为了安全地进行配置变更，在变更过程中，任何时候都不应该出现同一个term有两个leader的情况。不幸的是，将旧配置直接切换到新配置的任何方法都是不安全的。不可能自动地将所有服务器同时切换，因此切换过程中集群有可能分裂为两个独立的多数集（见图10）。<br />
 </p>
 
-<div id="org5cbcd34" class="figure">
+<div id="orgb54c949" class="figure">
 <p><img src="images/Raft/Raft_Extended_Figure_10.png" alt="Raft_Extended_Figure_10.png" width="80%" /><br />
 </p>
 </div>
 
 <p>
-为了保证安全，配置变更必须使用两阶段方式。有多种方法来实现这两个阶段。例如，有些系统（例如<a href="#org45d23d2">22</a>）使用第一阶段来禁用旧的配置，这样它们旧不能处理客户端请求了；然后第二个阶段起用新的配置。在Raft中，集群首先切换到过渡的配置： <i>联合共识（joint consensus）</i> ；一旦联合共识被提交了，系统就会切换到新的配置。联合共识包含了旧的和新的配置：<br />
+为了保证安全，配置变更必须使用两阶段方式。有多种方法来实现这两个阶段。例如，有些系统（例如<a href="#org2c06513">22</a>）使用第一阶段来禁用旧的配置，这样它们旧不能处理客户端请求了；然后第二个阶段起用新的配置。在Raft中，集群首先切换到过渡的配置： <i>联合共识（joint consensus）</i> ；一旦联合共识被提交了，系统就会切换到新的配置。联合共识包含了旧的和新的配置：<br />
 </p>
 <ul class="org-ul">
 <li>日志条目会复制到新旧配置中的所有服务器。<br /></li>
@@ -575,7 +575,7 @@ Leader选举是Raft算法中特别依赖计时的部分。只要系统满足如�
 </p>
 
 
-<div id="org9507806" class="figure">
+<div id="org734fbd7" class="figure">
 <p><img src="images/Raft/Raft_Extended_Figure_11.png" alt="Raft_Extended_Figure_11.png" width="80%" /><br />
 </p>
 </div>
@@ -617,11 +617,11 @@ Leader选举是Raft算法中特别依赖计时的部分。只要系统满足如�
 </p>
 
 <p>
-增量压缩方式，例如日志清理<a href="#orgecb229b">36</a>和日志结构归并树<a href="#org666f574">30</a> <a href="#org6374971">5</a>，也是可行的。这些技术一次处理一部分数据，因此能够将压缩负载随时间均衡地分散开来。首先他们会选择积攒了大量被删除、被覆盖对象的数据区域，将此区域的活跃（live）数据归集到一起，然后释放此区域。跟快照方式（总是处理完整的数据集，因此简化了问题）比起来，这需要大量的额外机制和复杂性。使用日志清理技术需要对Raft做改动，但状态机可以使用跟快照相同的接口来实现LSM树。<br />
+增量压缩方式，例如日志清理<a href="#orgd0a1ba3">36</a>和日志结构归并树<a href="#org740a010">30</a> <a href="#orgd394ded">5</a>，也是可行的。这些技术一次处理一部分数据，因此能够将压缩负载随时间均衡地分散开来。首先他们会选择积攒了大量被删除、被覆盖对象的数据区域，将此区域的活跃（live）数据归集到一起，然后释放此区域。跟快照方式（总是处理完整的数据集，因此简化了问题）比起来，这需要大量的额外机制和复杂性。使用日志清理技术需要对Raft做改动，但状态机可以使用跟快照相同的接口来实现LSM树。<br />
 </p>
 
 
-<div id="org8187181" class="figure">
+<div id="org6d4d1e5" class="figure">
 <p><img src="images/Raft/Raft_Extended_Figure_12.png" alt="Raft_Extended_Figure_12.png" width="80%" /><br />
 </p>
 </div>
@@ -635,7 +635,7 @@ Leader选举是Raft算法中特别依赖计时的部分。只要系统满足如�
 </p>
 
 
-<div id="org71b3d51" class="figure">
+<div id="orgc468579" class="figure">
 <p><img src="images/Raft/Raft_Extended_Figure_13.png" alt="Raft_Extended_Figure_13.png" width="80%" /><br />
 </p>
 </div>
@@ -665,7 +665,7 @@ Leader使用一个新的RPC——InstallSanpshot——将快照发送给进度�
 <h2 id="8-客户端交互-client-interaction">8 客户端交互（Client interaction）</h2>
 <div class="outline-text-2">
 <p>
-这一节描述了客户端如何跟Raft交互，包括客户端如何发现集群leader，Raft怎么支持线性语义<a href="#org8ee3c0f">10</a>。这是所有基于共识的系统都有的问题，Raft的解决方法跟其它系统类似。<br />
+这一节描述了客户端如何跟Raft交互，包括客户端如何发现集群leader，Raft怎么支持线性语义<a href="#org985aaa7">10</a>。这是所有基于共识的系统都有的问题，Raft的解决方法跟其它系统类似。<br />
 </p>
 
 <p>
@@ -677,7 +677,7 @@ Raft的目标是实现线性化语义（每个操作看起来立即执行了，�
 </p>
 
 <p>
-处理只读操作可以不向日志中写入任何内容。但是没有额外的措施，这可能有返回过期数据的风险，因为响应请求的leader可能已经被新的leader替代了，而旧leader并不知道新leader的存在。线性化读决不能返回过期数据，Raft需要两个额外的预防措施来保证这一点（且不使用日志）。首先，leader必须有关于哪些日志条目被提交了的最新信息。Leader完整性属性保证了leader有所有被提交的日志条目，但在term刚开始，它可能不知道是哪些条目。为了找出来，它需要在当前term中提交一条日志条目。Raft的处理方式是每个leader在term开始时向日志中提交一条空的 <i>no-op</i> 日志条目。其次，在处理只读请求前，leader要检查是否已经有更新的leader（如果有新的leader被选出来，它的信息可能已经过期了）。Raft的处理方式是leader在响应只读请求前，要跟集群的一个多数集交换心跳消息。或者，leader可以使用心跳机制来提供某种形式的租约<a href="#org050d2d3">9</a>，但是这需要依赖计时来保证安全性（它假定时钟漂移有上界）。<br />
+处理只读操作可以不向日志中写入任何内容。但是没有额外的措施，这可能有返回过期数据的风险，因为响应请求的leader可能已经被新的leader替代了，而旧leader并不知道新leader的存在。线性化读决不能返回过期数据，Raft需要两个额外的预防措施来保证这一点（且不使用日志）。首先，leader必须有关于哪些日志条目被提交了的最新信息。Leader完整性属性保证了leader有所有被提交的日志条目，但在term刚开始，它可能不知道是哪些条目。为了找出来，它需要在当前term中提交一条日志条目。Raft的处理方式是每个leader在term开始时向日志中提交一条空的 <i>no-op</i> 日志条目。其次，在处理只读请求前，leader要检查是否已经有更新的leader（如果有新的leader被选出来，它的信息可能已经过期了）。Raft的处理方式是leader在响应只读请求前，要跟集群的一个多数集交换心跳消息。或者，leader可以使用心跳机制来提供某种形式的租约<a href="#org806ced8">9</a>，但是这需要依赖计时来保证安全性（它假定时钟漂移有上界）。<br />
 </p>
 </div>
 </div>
@@ -708,159 +708,159 @@ Raft的目标是实现线性化语义（每个操作看起来立即执行了，�
 <h2 id="参考文献-references">参考文献（References）</h2>
 <div class="outline-text-2">
 <p>
-<a id="org71a63ca"></a> [1] BOLOSKY , W. J., B RADSHAW , D., HAAGENS, R. B., K USTERS , N. P., AND L I , P. Paxos replicated state machines as the basis of a high-performance data store. In Proc. NSDI’11, USENIX Conference on Networked Systems Design and Implementation (2011), USENIX, pp. 141–154.<br />
+<a id="org55b3af1"></a> [1] BOLOSKY , W. J., B RADSHAW , D., HAAGENS, R. B., K USTERS , N. P., AND L I , P. Paxos replicated state machines as the basis of a high-performance data store. In Proc. NSDI’11, USENIX Conference on Networked Systems Design and Implementation (2011), USENIX, pp. 141–154.<br />
 </p>
 
 <p>
-<a id="orgd139e9c"></a> [2] BURROWS , M. The Chubby lock service for loosely-coupled distributed systems. In Proc. OSDI’06, Symposium on Operating Systems Design and Implementation (2006), USENIX, pp. 335–350.<br />
+<a id="orgb37ef69"></a> [2] BURROWS , M. The Chubby lock service for loosely-coupled distributed systems. In Proc. OSDI’06, Symposium on Operating Systems Design and Implementation (2006), USENIX, pp. 335–350.<br />
 </p>
 
 <p>
-<a id="org8344a95"></a> [3] CAMARGOS , L. J., S CHMIDT, R. M., AND P EDONE , F. Multicoordinated Paxos. In Proc. PODC’07, ACM Symposium on Principles of Distributed Computing (2007), ACM, pp. 316–317.<br />
+<a id="org793113e"></a> [3] CAMARGOS , L. J., S CHMIDT, R. M., AND P EDONE , F. Multicoordinated Paxos. In Proc. PODC’07, ACM Symposium on Principles of Distributed Computing (2007), ACM, pp. 316–317.<br />
 </p>
 
 <p>
-<a id="org1b86ac4"></a> [4] CHANDRA , T. D., G RIESEMER , R., AND REDSTONE, J. Paxos made live: an engineering perspective. In Proc. PODC’07, ACM Symposium on Principles of Distributed Computing (2007), ACM, pp. 398–407.<br />
+<a id="org7372df4"></a> [4] CHANDRA , T. D., G RIESEMER , R., AND REDSTONE, J. Paxos made live: an engineering perspective. In Proc. PODC’07, ACM Symposium on Principles of Distributed Computing (2007), ACM, pp. 398–407.<br />
 </p>
 
 <p>
-<a id="org6374971"></a> [5] CHANG, F., D EAN , J., G HEMAWAT, S., H SIEH, W. C., W ALLACH , D. A., B URROWS, M., C HANDRA , T., F IKES, A., AND GRUBER , R. E. Bigtable: a distributed storage system for structured data. In Proc. OSDI’06, USENIX Symposium on Operating Systems Design and Implementation (2006), USENIX, pp. 205–218.<br />
+<a id="orgd394ded"></a> [5] CHANG, F., D EAN , J., G HEMAWAT, S., H SIEH, W. C., W ALLACH , D. A., B URROWS, M., C HANDRA , T., F IKES, A., AND GRUBER , R. E. Bigtable: a distributed storage system for structured data. In Proc. OSDI’06, USENIX Symposium on Operating Systems Design and Implementation (2006), USENIX, pp. 205–218.<br />
 </p>
 
 <p>
-<a id="org75ba7e8"></a> [6] CORBETT, J. C., DEAN , J., EPSTEIN, M., FIKES , A., F ROST , C., F URMAN , J. J., G HEMAWAT, S., G UBAREV , A., H EISER, C., H OCHSCHILD , P., HSIEH , W., KANTHAK , S., KOGAN, E., LI , H., L LOYD , A., MELNIK, S., MWAURA, D., N AGLE, D., Q UINLAN , S., R AO, R., ROLIG , L., S AITO , Y., S ZYMANIAK , M., TAYLOR, C., W ANG, R., AND W OODFORD , D. Spanner: Google’s globally-distributed database. In Proc. OSDI’12, USENIX Conference on Operating Systems Design and Implementation (2012), USENIX, pp. 251–264.<br />
+<a id="orge9c408e"></a> [6] CORBETT, J. C., DEAN , J., EPSTEIN, M., FIKES , A., F ROST , C., F URMAN , J. J., G HEMAWAT, S., G UBAREV , A., H EISER, C., H OCHSCHILD , P., HSIEH , W., KANTHAK , S., KOGAN, E., LI , H., L LOYD , A., MELNIK, S., MWAURA, D., N AGLE, D., Q UINLAN , S., R AO, R., ROLIG , L., S AITO , Y., S ZYMANIAK , M., TAYLOR, C., W ANG, R., AND W OODFORD , D. Spanner: Google’s globally-distributed database. In Proc. OSDI’12, USENIX Conference on Operating Systems Design and Implementation (2012), USENIX, pp. 251–264.<br />
 </p>
 
 <p>
-<a id="org2222c22"></a> [7] C OUSINEAU , D., D OLIGEZ , D., LAMPORT, L., MERZ , S., R ICKETTS, D., AND VANZETTO, H. TLA+ proofs. In Proc. FM’12, Symposium on Formal Methods (2012), D. Giannakopoulou and D. Méry, Eds., vol. 7436 of Lecture Notes in Computer Science, Springer, pp. 147–154.<br />
+<a id="org3ef080c"></a> [7] C OUSINEAU , D., D OLIGEZ , D., LAMPORT, L., MERZ , S., R ICKETTS, D., AND VANZETTO, H. TLA+ proofs. In Proc. FM’12, Symposium on Formal Methods (2012), D. Giannakopoulou and D. Méry, Eds., vol. 7436 of Lecture Notes in Computer Science, Springer, pp. 147–154.<br />
 </p>
 
 <p>
-<a id="org15b30cb"></a> [8] GHEMAWAT, S., G OBIOFF , H., AND L EUNG , S.-T. The Google file system. In Proc. SOSP’03, ACM Symposium on Operating Systems Principles (2003), ACM, pp. 29–43.<br />
+<a id="org3da9bbb"></a> [8] GHEMAWAT, S., G OBIOFF , H., AND L EUNG , S.-T. The Google file system. In Proc. SOSP’03, ACM Symposium on Operating Systems Principles (2003), ACM, pp. 29–43.<br />
 </p>
 
 <p>
-<a id="org050d2d3"></a> [9] GRAY , C., AND CHERITON , D. Leases: An efficient fault-tolerant mechanism for distributed file cache consistency. In Proceedings of the 12th ACM Ssymposium on Operating Systems Principles (1989), pp. 202–210.<br />
+<a id="org806ced8"></a> [9] GRAY , C., AND CHERITON , D. Leases: An efficient fault-tolerant mechanism for distributed file cache consistency. In Proceedings of the 12th ACM Ssymposium on Operating Systems Principles (1989), pp. 202–210.<br />
 </p>
 
 <p>
-<a id="org8ee3c0f"></a> [10] HERLIHY, M. P., AND W ING , J. M. Linearizability: a correctness condition for concurrent objects. ACM Transactions on Programming Languages and Systems 12 (July 1990), 463–492.<br />
+<a id="org985aaa7"></a> [10] HERLIHY, M. P., AND W ING , J. M. Linearizability: a correctness condition for concurrent objects. ACM Transactions on Programming Languages and Systems 12 (July 1990), 463–492.<br />
 </p>
 
 <p>
-<a id="org4e5f417"></a> [11] HUNT, P., K ONAR , M., J UNQUEIRA , F. P., AND R EED , B. ZooKeeper: wait-free coordination for internet-scale systems. In Proc ATC’10, USENIX Annual Technical Conference (2010), USENIX, pp. 145–158.<br />
+<a id="org17d01f5"></a> [11] HUNT, P., K ONAR , M., J UNQUEIRA , F. P., AND R EED , B. ZooKeeper: wait-free coordination for internet-scale systems. In Proc ATC’10, USENIX Annual Technical Conference (2010), USENIX, pp. 145–158.<br />
 </p>
 
 <p>
-<a id="orgd763b54"></a> [12] JUNQUEIRA , F. P., R EED , B. C., AND S ERAFINI, M. Zab: High-performance broadcast for primary-backup systems. In Proc. DSN’11, IEEE/IFIP Int’l Conf. on Dependable Systems &amp; Networks (2011), IEEE Computer Society, pp. 245–256.<br />
+<a id="org359d500"></a> [12] JUNQUEIRA , F. P., R EED , B. C., AND S ERAFINI, M. Zab: High-performance broadcast for primary-backup systems. In Proc. DSN’11, IEEE/IFIP Int’l Conf. on Dependable Systems &amp; Networks (2011), IEEE Computer Society, pp. 245–256.<br />
 </p>
 
 <p>
-<a id="orgd95ae63"></a> [13] KIRSCH , J., AND AMIR , Y. Paxos for system builders. Tech. Rep. CNDS-2008-2, Johns Hopkins University, 2008.<br />
+<a id="orgbe10148"></a> [13] KIRSCH , J., AND AMIR , Y. Paxos for system builders. Tech. Rep. CNDS-2008-2, Johns Hopkins University, 2008.<br />
 </p>
 
 <p>
-<a id="org560225f"></a> [14] LAMPORT, L. Time, clocks, and the ordering of events in a distributed system. Commununications of the ACM 21, 7 (July 1978), 558–565.<br />
+<a id="orgc642fe7"></a> [14] LAMPORT, L. Time, clocks, and the ordering of events in a distributed system. Commununications of the ACM 21, 7 (July 1978), 558–565.<br />
 </p>
 
 <p>
-<a id="org35fcd30"></a> [15] LAMPORT, L. The part-time parliament. ACM Transactions on Computer Systems 16, 2 (May 1998), 133–169.<br />
+<a id="orgf60dbd3"></a> [15] LAMPORT, L. The part-time parliament. ACM Transactions on Computer Systems 16, 2 (May 1998), 133–169.<br />
 </p>
 
 <p>
-<a id="org189f693"></a> [16] LAMPORT, L. Paxos made simple. ACM SIGACT News 32, 4 (Dec. 2001), 18–25.<br />
+<a id="org72d9eb8"></a> [16] LAMPORT, L. Paxos made simple. ACM SIGACT News 32, 4 (Dec. 2001), 18–25.<br />
 </p>
 
 <p>
-<a id="org66b50df"></a> [17] LAMPORT, L. Specifying Systems, The TLA+ Language and Tools for Hardware and Software Engineers. Addison-Wesley, 2002.<br />
+<a id="org4b84884"></a> [17] LAMPORT, L. Specifying Systems, The TLA+ Language and Tools for Hardware and Software Engineers. Addison-Wesley, 2002.<br />
 </p>
 
 <p>
-<a id="orgedd3732"></a> [18] LAMPORT, L. Generalized consensus and Paxos. Tech. Rep. MSR-TR-2005-33, Microsoft Research, 2005.<br />
+<a id="org5ea19e9"></a> [18] LAMPORT, L. Generalized consensus and Paxos. Tech. Rep. MSR-TR-2005-33, Microsoft Research, 2005.<br />
 </p>
 
 <p>
-<a id="orgfe547fe"></a> [19] LAMPORT, L. Fast paxos. Distributed Computing 19, 2(2006), 79–103.<br />
+<a id="orga3273db"></a> [19] LAMPORT, L. Fast paxos. Distributed Computing 19, 2(2006), 79–103.<br />
 </p>
 
 <p>
-<a id="org0935326"></a> [20] LAMPSON , B. W. How to build a highly available system using consensus. In Distributed Algorithms, O. Baboaglu and K. Marzullo, Eds. Springer-Verlag, 1996, pp. 1–17.<br />
+<a id="orgeb60593"></a> [20] LAMPSON , B. W. How to build a highly available system using consensus. In Distributed Algorithms, O. Baboaglu and K. Marzullo, Eds. Springer-Verlag, 1996, pp. 1–17.<br />
 </p>
 
 <p>
-<a id="orgab160cc"></a> [21] LAMPSON , B. W. The ABCD’s of Paxos. In Proc. PODC’01, ACM Symposium on Principles of Distributed Computing (2001), ACM, pp. 13–13.<br />
+<a id="orgcddfbe6"></a> [21] LAMPSON , B. W. The ABCD’s of Paxos. In Proc. PODC’01, ACM Symposium on Principles of Distributed Computing (2001), ACM, pp. 13–13.<br />
 </p>
 
 <p>
-<a id="org45d23d2"></a> [22] LISKOV , B., AND COWLING, J. Viewstamped replication revisited. Tech. Rep. MIT-CSAIL-TR-2012-021, MIT, July 2012.<br />
+<a id="org2c06513"></a> [22] LISKOV , B., AND COWLING, J. Viewstamped replication revisited. Tech. Rep. MIT-CSAIL-TR-2012-021, MIT, July 2012.<br />
 </p>
 
 <p>
-<a id="org19d49fd"></a> [23] LogCabin source code. <a href="http://github.com/logcabin/logcabin">http://github.com/logcabin/logcabin</a>.<br />
+<a id="orgf29e2bd"></a> [23] LogCabin source code. <a href="http://github.com/logcabin/logcabin">http://github.com/logcabin/logcabin</a>.<br />
 </p>
 
 <p>
-<a id="orgcb1202f"></a> [24] LORCH , J. R., ADYA , A., BOLOSKY , W. J., CHAIKEN, R., DOUCEUR , J. R., AND HOWELL, J. The SMART way to migrate replicated stateful services. In Proc. EuroSys’06, ACM SIGOPS/EuroSys European Conference on Computer Systems (2006), ACM, pp. 103–115.<br />
+<a id="orgad2bf76"></a> [24] LORCH , J. R., ADYA , A., BOLOSKY , W. J., CHAIKEN, R., DOUCEUR , J. R., AND HOWELL, J. The SMART way to migrate replicated stateful services. In Proc. EuroSys’06, ACM SIGOPS/EuroSys European Conference on Computer Systems (2006), ACM, pp. 103–115.<br />
 </p>
 
 <p>
-<a id="orgff9fb0a"></a> [25] MAO, Y., JUNQUEIRA , F. P., AND MARZULLO, K. Mencius: building efficient replicated state machines for WANs. In Proc. OSDI’08, USENIX Conference on Operating Systems Design and Implementation (2008), USENIX, pp. 369–384.<br />
+<a id="org85058b6"></a> [25] MAO, Y., JUNQUEIRA , F. P., AND MARZULLO, K. Mencius: building efficient replicated state machines for WANs. In Proc. OSDI’08, USENIX Conference on Operating Systems Design and Implementation (2008), USENIX, pp. 369–384.<br />
 </p>
 
 <p>
-<a id="org26f47a5"></a> [26] MAZIÈRES , D. Paxos made practical. <a href="http://www.scs.stanford.edu/~dm/home/papers/paxos.pdf">http://www.scs.stanford.edu/~dm/home/papers/paxos.pdf</a>, Jan. 2007.<br />
+<a id="org7a3af6f"></a> [26] MAZIÈRES , D. Paxos made practical. <a href="http://www.scs.stanford.edu/~dm/home/papers/paxos.pdf">http://www.scs.stanford.edu/~dm/home/papers/paxos.pdf</a>, Jan. 2007.<br />
 </p>
 
 <p>
-<a id="org2d9b475"></a> [27] MORARU , I., ANDERSEN , D. G., AND KAMINSKY , M. There is more consensus in egalitarian parliaments. In Proc. SOSP’13, ACM Symposium on Operating System Principles (2013), ACM.<br />
+<a id="orgb6c59ea"></a> [27] MORARU , I., ANDERSEN , D. G., AND KAMINSKY , M. There is more consensus in egalitarian parliaments. In Proc. SOSP’13, ACM Symposium on Operating System Principles (2013), ACM.<br />
 </p>
 
 <p>
-<a id="org22c3aff"></a> [28] Raft user study. <a href="http://ramcloud.stanford.edu/~ongaro/userstudy/">http://ramcloud.stanford.edu/~ongaro/userstudy/</a>.<br />
+<a id="orgb21d7f6"></a> [28] Raft user study. <a href="http://ramcloud.stanford.edu/~ongaro/userstudy/">http://ramcloud.stanford.edu/~ongaro/userstudy/</a>.<br />
 </p>
 
 <p>
-<a id="org2ae6ce5"></a> [29] OKI , B. M., AND L ISKOV , B. H. Viewstamped replication: A new primary copy method to support highly-available distributed systems. In Proc. PODC’88, ACM Symposium on Principles of Distributed Computing(1988), ACM, pp. 8–17.<br />
+<a id="org85d7afe"></a> [29] OKI , B. M., AND L ISKOV , B. H. Viewstamped replication: A new primary copy method to support highly-available distributed systems. In Proc. PODC’88, ACM Symposium on Principles of Distributed Computing(1988), ACM, pp. 8–17.<br />
 </p>
 
 <p>
-<a id="org666f574"></a> [30] O’N EIL , P., CHENG, E., GAWLICK , D., AND ONEIL , E. The log-structured merge-tree (LSM-tree). Acta Informatica 33, 4 (1996), 351–385.<br />
+<a id="org740a010"></a> [30] O’N EIL , P., CHENG, E., GAWLICK , D., AND ONEIL , E. The log-structured merge-tree (LSM-tree). Acta Informatica 33, 4 (1996), 351–385.<br />
 </p>
 
 <p>
-<a id="org7a77383"></a> [31] ONGARO , D. Consensus: Bridging Theory and Practice. PhD thesis, Stanford University, 2014 (work in progress). <a href="http://ramcloud.stanford.edu/~ongaro/thesis.pdf">http://ramcloud.stanford.edu/~ongaro/thesis.pdf</a>.<br />
+<a id="org8d8fb37"></a> [31] ONGARO , D. Consensus: Bridging Theory and Practice. PhD thesis, Stanford University, 2014 (work in progress). <a href="http://ramcloud.stanford.edu/~ongaro/thesis.pdf">http://ramcloud.stanford.edu/~ongaro/thesis.pdf</a>.<br />
 </p>
 
 <p>
-<a id="org3f98318"></a> [32] ONGARO , D., AND OUSTERHOUT, J. In search of an understandable consensus algorithm. In Proc ATC’14, USENIX Annual Technical Conference (2014), USENIX.<br />
+<a id="orgf155bd3"></a> [32] ONGARO , D., AND OUSTERHOUT, J. In search of an understandable consensus algorithm. In Proc ATC’14, USENIX Annual Technical Conference (2014), USENIX.<br />
 </p>
 
 <p>
-<a id="org58f8ab7"></a> [33] OUSTERHOUT , J., AGRAWAL , P., ERICKSON , D., KOZYRAKIS , C., LEVERICH , J., MAZIÈRES , D., MITRA , S., NARAYANAN , A., ONGARO , D., PARULKARG., ROSENBLUM, M., RUMBLE, S. M., STRATMANNE., AND STUTSMAN, R. The case for RAMCloud. Communications of the ACM 54 (July 2011), 121–130.<br />
+<a id="org2cd7dae"></a> [33] OUSTERHOUT , J., AGRAWAL , P., ERICKSON , D., KOZYRAKIS , C., LEVERICH , J., MAZIÈRES , D., MITRA , S., NARAYANAN , A., ONGARO , D., PARULKARG., ROSENBLUM, M., RUMBLE, S. M., STRATMANNE., AND STUTSMAN, R. The case for RAMCloud. Communications of the ACM 54 (July 2011), 121–130.<br />
 </p>
 
 <p>
-<a id="org3753235"></a> [34] Raft consensus algorithm website. <a href="http://raftconsensus.github.io">http://raftconsensus.github.io</a>.<br />
+<a id="org2200ee3"></a> [34] Raft consensus algorithm website. <a href="http://raftconsensus.github.io">http://raftconsensus.github.io</a>.<br />
 </p>
 
 <p>
-<a id="orgbad6929"></a> [35] REED , B. Personal communications, May 17, 2013.<br />
+<a id="orgdbf4b96"></a> [35] REED , B. Personal communications, May 17, 2013.<br />
 </p>
 
 <p>
-<a id="orgecb229b"></a> [36] ROSENBLUM , M., AND OUSTERHOUT, J. K. The design and implementation of a log-structured file system. ACM Trans. Comput. Syst. 10 (February 1992), 26–52.<br />
+<a id="orgd0a1ba3"></a> [36] ROSENBLUM , M., AND OUSTERHOUT, J. K. The design and implementation of a log-structured file system. ACM Trans. Comput. Syst. 10 (February 1992), 26–52.<br />
 </p>
 
 <p>
-<a id="orgad8dad3"></a> [37] SCHNEIDER , F. B. Implementing fault-tolerant services using the state machine approach: a tutorial. ACM Computing Surveys 22, 4 (Dec. 1990), 299–319.<br />
+<a id="org343fc82"></a> [37] SCHNEIDER , F. B. Implementing fault-tolerant services using the state machine approach: a tutorial. ACM Computing Surveys 22, 4 (Dec. 1990), 299–319.<br />
 </p>
 
 <p>
-<a id="orgf390e94"></a> [38] SHVACHKO , K., KUANG, H., RADIA , S., AND CHANSLER , R. The Hadoop distributed file system. In Proc. MSST’10, Symposium on Mass Storage Systems and Technologies (2010), IEEE Computer Society, pp. 1–10.<br />
+<a id="org491492f"></a> [38] SHVACHKO , K., KUANG, H., RADIA , S., AND CHANSLER , R. The Hadoop distributed file system. In Proc. MSST’10, Symposium on Mass Storage Systems and Technologies (2010), IEEE Computer Society, pp. 1–10.<br />
 </p>
 
 <p>
-<a id="orge08adcf"></a> [39] VAN R ENESSE , R. Paxos made moderately complex. Tech. rep., Cornell University, 2012.<br />
+<a id="org1de90fe"></a> [39] VAN R ENESSE , R. Paxos made moderately complex. Tech. rep., Cornell University, 2012.<br />
 </p>
 </div>
 </div>
