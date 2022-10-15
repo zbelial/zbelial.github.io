@@ -94,9 +94,12 @@
 <div class="outline-text-2">
 <blockquote>
 <p>
-The Paxos algorithm for implementing a fault-tolerant distributed system has been regarded as difficult to understand, perhaps because the original presentation was Greek to many readers<sup><a id="fnr.1" class="footref" href="#fn.1" role="doc-backlink">1</a></sup>. In fact, it is among the simplest and most obvious of distributed algorithms. At its heart is a consensus algorithm &#x2013; the "synod" algorithm of <sup><a id="fnr.1.100" class="footref" href="#fn.1" role="doc-backlink">1</a></sup>. The net section shows that this consensus algorithm follows almost unavoidably from the properties we want it to satify. The last section explains the complete Paxos algorithm, which is obtained by the straightforward application of consensus to the state machine approach for building a distributed system&#x2013;an approach that should be well-known, since it is the subject of what is probably the most often-cited article on the theory of distributed systems<sup><a id="fnr.2" class="footref" href="#fn.2" role="doc-backlink">2</a></sup>.<br />
+The Paxos algorithm for implementing a fault-tolerant distributed system has been regarded as difficult to understand, perhaps because the original presentation was Greek to many readers<sup><a id="fnr.1" class="footref" href="#fn.1" role="doc-backlink">1</a></sup>. In fact, it is among the simplest and most obvious of distributed algorithms. At its heart is a consensus algorithm &#x2013; the "synod" algorithm of <sup><a id="fnr.1.100" class="footref" href="#fn.1" role="doc-backlink">1</a></sup>. The next section shows that this consensus algorithm follows almost unavoidably from the properties we want it to satify. The last section explains the complete Paxos algorithm, which is obtained by the straightforward application of consensus to the state machine approach for building a distributed system&#x2013;an approach that should be well-known, since it is the subject of what is probably the most often-cited article on the theory of distributed systems<sup><a id="fnr.2" class="footref" href="#fn.2" role="doc-backlink">2</a></sup>.<br />
 </p>
 </blockquote>
+<p>
+一直以来，人们都认为用于实现可容错的分布式系统的Paxos算法难以理解，可能是由于原稿的语言是希腊语<sup><a id="fnr.1.100" class="footref" href="#fn.1" role="doc-backlink">1</a></sup>。其实它是最简单直观的分布式算法之一。Paxos的核心是一个共识算法，也就是<sup><a id="fnr.1.100" class="footref" href="#fn.1" role="doc-backlink">1</a></sup>中提到的“synod”算法。下一节显示了这个共识算法自然而然地脱胎于我们希望它满足的特性。最后一节通过将共识算法应用于状态机来构建一个分布式系统的方式（这种方式可以说广为人知，因为它是分布式理论这一领域里可能最常被引用的文章<sup><a id="fnr.2.100" class="footref" href="#fn.2" role="doc-backlink">2</a></sup>的主题）解释了完整的Paxos算法。<br />
+</p>
 </div>
 </div>
 
@@ -117,18 +120,25 @@ Assume a collection of processes that can propose values. A consensus algorithm 
 <li>A process never learns that a value has been chosen unless it actually has been.<br /></li>
 </ul>
 </blockquote>
+<p>
+假设有一些进程，它们会提出议案。一致性算法保证这些议案中只有一个会被选中。如果一个议案都没有提出，那也就不会有选中的议案。如果一个议案被选中了，这些进程就应该知道被选中的是哪个。共识需要满足如下安全要求：<br />
+</p>
+<ul class="org-ul">
+<li>只有被提出的议案才能被选中<br /></li>
+<li>只有一个议案被选中<br /></li>
+<li>议案真的被选中之后，进程才能获悉有议案被选中<br /></li>
+</ul>
 
 <blockquote>
 <p>
 We won’t try to specify precise liveness requirements. However, the goal is to ensure that some proposed value is eventually chosen and, if a value has been chosen, then a process can eventually learn the value.<br />
-</p>
-</blockquote>
-
-<blockquote>
-<p>
 We let the three roles in the consensus algorithm be performed by three classes of agents: proposers, acceptors, and learners. In an implementation, a single process may act as more than one agent, but the mapping from agents to processes does not concern us here.<br />
 </p>
 </blockquote>
+<p>
+我们不会尝试给出共识算法需要满足的活性要求。但是，目标是要确保某个提案最终被选中，而且如果有提案被选中，进程最终能够知道被选中的提案。<br />
+共识算法中的三个角色分别由三种不同的代理来履行：proposer，acceptor，以及learner。在算法实现中，单个进程可以充当多个代理，但在这里我们不关注代理和进程的对应关系。<br />
+</p>
 
 <blockquote>
 <p>
@@ -139,6 +149,13 @@ Assume that agents can communicate with one another by sending messages. We use 
 <li>Messages can take arbitrarily long to be delivered, can be duplicated, and can be lost, but they are not corrupted.<br /></li>
 </ul>
 </blockquote>
+<p>
+假定代理可以通过消息通讯。我们使用常用的异步、非拜占庭模型：<br />
+</p>
+<ul class="org-ul">
+<li>代理运行速度不定，可能停机，可能会重启。因为所有的代理都可能在某个提案被选中之后发生故障又重启，所以发生故障而后重启的代理必须要能记住某些信息，否则共识就无法达成。<br /></li>
+<li>消息传递需要的时间长短不定，消息可能重复，可能丢失，但不会被篡改内容。<br /></li>
+</ul>
 </div>
 </div>
 
@@ -150,12 +167,18 @@ Assume that agents can communicate with one another by sending messages. We use 
 The easiest way to choose a value is to have a single acceptor agent. A proposer sends a proposal to the acceptor, who chooses the first proposed value that it receives. Although simple, this solution is unsatisfactory because the failure of the acceptor makes any further progress impossible.<br />
 </p>
 </blockquote>
+<p>
+只有一个acceptor是最简单的选择提案的方式。Proposer向这个acceptor发送提案，acceptor就选择接收到的第一个提案。这种方式尽管简单，却不合用，因为acceptor发生故障就会导致系统无法继续运行了。<br />
+</p>
 
 <blockquote>
 <p>
 So, let’s try another way of choosing a value. Instead of a single acceptor, let’s use multiple acceptor agents. A proposer sends a proposed value to a set of acceptors. An acceptor may accept the proposed value. The value is chosen when a large enough set of acceptors have accepted it. How large is large enough? To ensure that only a single value is chosen, we can let a large enough set consist of any majority of the agents. Because any two majorities have at least one acceptor in common, this works if an acceptor can accept at most one value. (There is an obvious generalization of a majority that has been observed in numerous papers, apparently starting with <sup><a id="fnr.3" class="footref" href="#fn.3" role="doc-backlink">3</a></sup>.)<br />
 </p>
 </blockquote>
+<p>
+所以，我们来尝试另一种选择提案的方式。我们使用多个acceptor而不是一个。Proposer向多个proposer发送提案。Acceptor可能会接受这个提案。如果有足够多的acceptor接受了某个提案，这个提案就被选中了。多少才算足够多呢？要保证只有一个提案被选中，足够多需要包含一半以上的acceptor（即多数集）。因为两个多数集中至少有一个accetpor是共有的，如果一个acceptor最多只能接受一个提案，这种选择提案的方式就是可行的。（在大量的论文中都有关于多数集的归纳陈述，看起来是从<sup><a id="fnr.3.100" class="footref" href="#fn.3" role="doc-backlink">3</a></sup>开始。）<br />
+</p>
 
 <blockquote>
 <p>
@@ -163,6 +186,10 @@ In the absence of failure or message loss, we want a value to be chosen even if 
 <b>P1. An acceptor must accept the first proposal that it receives.</b><br />
 </p>
 </blockquote>
+<p>
+在没有故障或消息丢失的情况下，即便只有一个proposer发出了一个提案，我们希望这个提案能被选中。这就要求：<br />
+<b>P1. 一个acceptor必须接受它收到的第一个提案。</b><br />
+</p>
 
 <blockquote>
 <p>
@@ -232,7 +259,9 @@ We can therefore satisfy P2<sup>b</sup> by maintaining the invariance of P2<sup>
 <p>
 To maintain the invariance of P2<sup>c</sup>, a proposer that wants to issue a proposal numbered n must learn the highest-numbered proposal with number less than n, if any, that has been or will be accepted by each acceptor in some majority of acceptors. Learning about proposals already accepted is easy enough; predicting future acceptances is hard. Instead of trying to predict the future, the proposer controls it by extracting a promise that there won’t be any such acceptances. In other words, the proposer requests that the acceptors not accept any more proposals numbered less than n. This leads to the following algorithm for issuing proposals.<br />
 </p>
+</blockquote>
 
+<blockquote>
 <ol class="org-ol">
 <li>A proposer chooses a new proposal number n and sends a request to each member of some set of acceptors, asking it to respond with:<br />
 (a) A promise never again to accept a proposal numbered less than n, and<br />
@@ -241,7 +270,6 @@ To maintain the invariance of P2<sup>c</sup>, a proposer that wants to issue a p
 <p>
 I will call such a request a <i>prepare</i> request with number n.<br />
 </p>
-
 <ol class="org-ol">
 <li>If the proposer receives the requested responses from a majority of the acceptors, then it can issue a proposal with number n and value v , where v is the value of the highest-numbered proposal among the responses, or is any value selected by the proposer if the responders reported no proposals.<br /></li>
 </ol>
