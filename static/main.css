@@ -56,6 +56,16 @@ body {
         width:900px
     }
 }
+@media screen and (min-width:1510px){
+    body{
+        width:1500px
+    }
+}
+@media screen and (min-width:1810px){
+    body{
+        width:1800px
+    }
+}
 
 header {
   display: flex;
@@ -113,6 +123,11 @@ main {
     margin: 0 auto;
     flex-grow: 1;
 }
+@media screen and (min-width:910px){
+    main{
+        width:900px
+    }
+}
 @media (max-width: 599px) {
     main {
         width: calc(100% - 20px);
@@ -123,6 +138,29 @@ article h1:first-child { font-size: 36px; }
 .post__meta {
     font-size: 14px;
     color: var(--cl-gray);
+}
+
+mark{
+    background-color:#ff0;
+    color:#000
+}
+small{
+    font-size:80%
+}
+sub,sup{
+    font-size:75%;
+    line-height:0;
+    position:relative;
+    vertical-align:baseline
+}
+sub{
+    bottom:-.25em
+}
+sup{
+    top:-.5em
+}
+img{
+    border-style:none
 }
 
 /* -- table -- */
@@ -142,6 +180,53 @@ main table th { text-align: left; }
 .note p {
     margin: 0;
     padding: 0;
+}
+
+.org-org-footnote{
+    color:#96b4cd;
+    text-decoration:underline
+}
+#footnotes{
+    font-size:90%
+}
+.footpara{
+    display:inline;
+    margin:.2em auto
+}
+.footdef{
+    margin-bottom:1em
+}
+.footdef sup{
+    padding-right:.5em
+}
+caption.t-above{
+    caption-side:top
+}
+caption.t-bottom{
+    caption-side:bottom
+}
+caption{
+    margin-bottom:.3em
+}
+figcaption{
+    margin-top:.3em
+}
+th.org-center,th.org-left,th.org-right{
+    text-align:center
+}
+td.org-right{
+    text-align:right
+}
+td.org-left{
+    text-align:left
+}
+td.org-center{
+    text-align:center
+}
+blockquote{
+    margin:1em 2em;
+    padding-left:1em;
+    border-left:3px solid #ccc
 }
 
 /* -- Page -- */
