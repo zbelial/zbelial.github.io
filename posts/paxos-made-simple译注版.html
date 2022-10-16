@@ -81,8 +81,8 @@
 <h2 id="引言">引言</h2>
 <div class="outline-text-2">
 <p>
-最近在重读<a href="https://lamport.azurewebsites.net/pubs/paxos-simple.pdf">Paxos Made Simple</a>，相比以前又多了一些理解，就想着记录下来，顺便把理解标注一下，希望对其他人理解论文也能有些帮助。<br />
-文中会是一段英文一段中文的编排方式，便于直接对照原文阅读。翻译部分在保证准确贴近原文意思的前提下会尽量白话一点。注解会在译文里，写在中括号中。<br />
+最近在重读<a href="https://lamport.azurewebsites.net/pubs/paxos-simple.pdf">Paxos Made Simple</a>，相比以前又多了一些理解，就打算记录下来，顺便把理解标注一下，希望对其他人理解论文也能有些帮助。<br />
+文中会是一段英文一段中文的编排方式，便于直接对照原文阅读。翻译部分在力求准确贴近原文意思的前提下会尽量白话一点。注解会在译文里，写在中括号内。<br />
 论文中的一些名词，例如proposer/acceptor等，在译文中以英文形式出现。<br />
 开始吧！<br />
 </p>
@@ -168,7 +168,7 @@ The easiest way to choose a value is to have a single acceptor agent. A proposer
 </p>
 </blockquote>
 <p>
-只有一个acceptor是最简单的选择提案的方式。Proposer向这个acceptor发送提案，acceptor就选择接收到的第一个提案。这种方式尽管简单，却不合用，因为acceptor发生故障就会导致系统无法继续运行了。<br />
+使用单个acceptor是最简单的选择提案的方式。Proposer向这个acceptor发送提案，acceptor就选择接收到的第一个提案。这种方式尽管简单，却不合用，因为acceptor发生故障就会导致系统无法继续运行了。<br />
 </p>
 
 <blockquote>
@@ -187,8 +187,8 @@ In the absence of failure or message loss, we want a value to be chosen even if 
 </p>
 </blockquote>
 <p>
-在没有故障或消息丢失的情况下，即便只有一个proposer发出了一个提案，我们希望这个提案能被选中。这就要求：<br />
-<b>P1. 一个acceptor必须接受它收到的第一个提案。</b><br />
+在没有故障或消息丢失的情况下，即便只有单个proposer发出了一个提案，我们希望这个提案能被选中。这就要求：<br />
+<b>P1. Acceptor必须接受它收到的第一个提案。</b><br />
 </p>
 
 <blockquote>
@@ -196,12 +196,18 @@ In the absence of failure or message loss, we want a value to be chosen even if 
 But this requirement raises a problem. Several values could be proposed by different proposers at about the same time, leading to a situation in which every acceptor has accepted a value, but no single value is accepted by a majority of them. Even with just two proposed values, if each is accepted by about half the acceptors, failure of a single acceptor could make it impossible to learn which of the values was chosen.<br />
 </p>
 </blockquote>
+<p>
+但是这个要求带来一个问题。不同的proposer可能会同时提交多个提案，导致每个acceptor接受一个提案，但是哪个提案都没有被多数集接受。即便只有两个提案，如果每个都被约半数的acceptor接受，单个acceptor出现故障就会导致不会有提案被选中。<br />
+</p>
 
 <blockquote>
 <p>
 P1 and the requirement that a value is chosen only when it is accepted by a majority of acceptors imply that an acceptor must be allowed to accept more than one proposal. We keep track of the different proposals that an acceptor may accept by assigning a (natural) number to each proposal, so a proposal consists of a proposal number and a value. To prevent confusion, we require that different proposals have different numbers. How this is achieved depends on the implementation, so for now we just assume it. A value is chosen when a single proposal with that value has been accepted by a majority of the acceptors. In that case, we say that the proposal (as well as its value) has been chosen.<br />
 </p>
 </blockquote>
+<p>
+条件P1以及提案只有在被acceptor的多数集接受时才被选中意味着一个acceptor得能接受多个提案。通过给每个提案一个编号，我们可以记录一个acceptor接受的不同提案，因此提案包含编号和值。为了防止出现混乱，我们要求不同提案的编号要不一样。怎么做取决于实现，我们现在只是假定可以做到。一个提案被acceptor的多数集接受之后，其值也就被选中了。这时我们就说这个提案（以及它的值）被选中了。<br />
+</p>
 
 <blockquote>
 <p>
@@ -209,6 +215,10 @@ We can allow multiple proposals to be chosen, but we must guarantee that all cho
 <b>P2. If a proposal with value v is chosen, then every higher-numbered proposal that is chosen has value v .</b><br />
 </p>
 </blockquote>
+<p>
+我们可以允许多个提案被选中，但必须保证所有被选中的提案都有相同的值。通过对提案编号使用归纳法，只要保证下面的条件了：<br />
+<b>P2.如果一个值为 v 的提案被选中，那么被选中的、编号更高的所有提案的值是v。</b><br />
+</p>
 
 <blockquote>
 <p>
@@ -220,6 +230,11 @@ To be chosen, a proposal must be accepted by at least one acceptor. So, we can s
 <b>P2<sup>a</sup> . If a proposal with value v is chosen, then every higher-numbered proposal accepted by any acceptor has value v.</b><br />
 </p>
 </blockquote>
+<p>
+因为编号是全序的，P2保证了只会有一个值被选中。<br />
+提案要被选中，至少得有一个acceptor接受了它。因此，满足了下面的条件也就满足了P2:<br />
+<b>P2<sup>a</sup>. 如果一个值为v的提案被选中了，那么每个acceptor接受的、编号更高的所有提案的值是v。</b><br />
+</p>
 
 <blockquote>
 <p>
@@ -231,6 +246,10 @@ We still maintain P1 to ensure that some proposal is chosen. Because communicati
 Since a proposal must be issued by a proposer before it can be accepted by an acceptor, P2<sup>b</sup> implies P2<sup>a</sup> , which in turn implies P2.<br />
 </p>
 </blockquote>
+<p>
+我们还是要满足P1，以保证某个提案被选中。因为通讯是异步的，可能会出现一个提案被选中了，但是某个accetor（记为c）却从没收到过任何提案。假设某个新的proposer“醒过来”后提交了一个编号更大、值不一样的提案。P1要求c接受这个提案，折旧违反了P2<sup>a</sup>。同时满足P1和P2<sup>a</sup>需要将P2<sup>a</sup>加强为：<br />
+<b>P2<sup>b</sup>. 如果一个值为 v 的提案被选中了，那么每个proposer提交的、编号更大的所有提案的值是v。</b><br />
+</p>
 
 <blockquote>
 <p>
