@@ -287,6 +287,23 @@ blockquote{
     color:orange;
     font-family:Lucida Console,monospace
 }
+.tag{
+    font-family:Lucida Console,monospace;
+    font-size:.7em;
+    font-weight:400
+}
+.tag span{
+    padding:.3em;
+    float:right;
+    margin-right:.5em;
+    border:1px solid #bbb;
+    border-radius:3px;
+    background-clip:padding-box;
+    color:#333;
+    background-color:#eee;
+    line-height:1
+}
+
 
 /* -- Page -- */
 
