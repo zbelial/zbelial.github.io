@@ -247,7 +247,7 @@ Since a proposal must be issued by a proposer before it can be accepted by an ac
 </p>
 </blockquote>
 <p>
-我们还是要满足P1，以保证某个提案被选中。因为通讯是异步的，可能会出现一个提案被选中了，但是某个accetor（记为c）却从没收到过任何提案。假设某个新的proposer“醒过来”后提交了一个编号更大、值不一样的提案。P1要求c接受这个提案，折旧违反了P2<sup>a</sup>。同时满足P1和P2<sup>a</sup>需要将P2<sup>a</sup>加强为：<br />
+我们还是要满足P1，以保证某个提案被选中。因为通讯是异步的，可能会出现一个提案被选中了，但是某个accetor（记为c）却从没收到过任何提案。假设某个新的proposer“醒过来”后提交了一个编号更大、值不一样的提案。P1要求c接受这个提案，这就违反了P2<sup>a</sup>。同时满足P1和P2<sup>a</sup>需要将P2<sup>a</sup>加强为：<br />
 <b>P2<sup>b</sup>. 如果一个值为 v 的提案被选中了，那么每个proposer提交的、编号更大的所有提案的值是v。</b><br />
 </p>
 
@@ -256,6 +256,9 @@ Since a proposal must be issued by a proposer before it can be accepted by an ac
 To discover how to satisfy P2<sup>b</sup>, let’s consider how we would prove that it holds. We would assume that some proposal with number m and value v is chosen and show that any proposal issued with number n &gt; m also has value v . We would make the proof easier by using induction on n, so we can prove that proposal number n has value v under the additional assumption that every proposal issued with a number in m . . (n − 1) has value v , where i . . j denotes the set of numbers from i through j . For the proposal numbered m to be chosen, there must be some set C consisting of a majority of acceptors such that every acceptor in C accepted it. Combining this with the induction assumption, the hypothesis that m is chosen implies:<br />
 </p>
 </blockquote>
+<p>
+为了发现如何满足P2<sup>b</sup>，我们来考虑下怎么证明它成立。我们会假设某个编号为m值为v的提案被选中，并展示被提交的、编码为n（n&gt;m）的任何提案的值也是v。我们会对n使用归纳法来简化证明，所以我们会证明在附加条件－－所有被提交的、且编码在m..(n-1)之中的提案的值都是v－－下，编码为n的提案的值也是v，其中i..j表示从i到j的数字的集合。<br />
+</p>
 
 <blockquote>
 <p>

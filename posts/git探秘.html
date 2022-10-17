@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    
+    <meta charset="utf-8">
+    <title>
+      月知录
+      
+    </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="zjyzhaojiyang@gmail.com (zbelial))" />
+    <meta name="description" content="zbelial&#39;s personal blog." />
+    
+    
+  <meta property="og:title" content="Git探秘">
+  <meta property="og:url" content="https://zbelial.github.io/posts/git探秘.html">
+  
+    <meta property="og:description" content="探究Git版本控制系统">
+  
+  
+  <meta name="twitter:card" content="summary_large_image">
+
+    <link rel="stylesheet" href="https://zbelial.github.io/static/main.css" type="text/css" />
+    
+  </head>
+  <body>
+    
+    
+      <header>
+        <h1>
+          <a href="https://zbelial.github.io/">
+            月知录
+          </a>
+        </h1>
+        <a href="#main" class="visually-hidden">跳转到正文(jump to main content)</a>
+        <nav>
+          <ul class="menu">
+            <li><a href="https://zbelial.github.io/about.html">关于(about)</a></li>
+            <li><a href="https://zbelial.github.io/">首页(blog)</a></li>
+            <li><a href="https://github.com/zbelial">Github</a></li>
+          </ul>
+        </nav>
+      </header>
+    
+
+    
+    <main id="main">
+      
+  <article class="post">
+    <h1 class="post__title">
+      Git探秘
+    </h1>
+    <section class="post__meta">
+      
+        10月 12, 2022
+      
+    </section>
+    <section>
+      <div id="table-of-contents" role="doc-toc">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="#前言">前言</a>
+<ul>
+<li><a href="#为什么写">为什么写？</a></li>
+<li><a href="#适合哪些人看">适合哪些人看？</a></li>
+</ul>
+</li>
+<li><a href="#git仓库内容">Git仓库内容</a></li>
+<li><a href="#git对象和引用">Git对象和引用</a>
+<ul>
+<li><a href="#blob对象">Blob对象</a></li>
+<li><a href="#tree对象">Tree对象</a></li>
+<li><a href="#commit对象">Commit对象</a></li>
+<li><a href="#tag对象"><span class="todo TODO">TODO</span> Tag对象</a></li>
+<li><a href="#引用"><span class="todo TODO">TODO</span> 引用</a></li>
+</ul>
+</li>
+<li><a href="#git常用操作探秘">Git常用操作探秘</a>
+<ul>
+<li><a href="#git暂存区"><span class="todo TODO">TODO</span> Git暂存区</a>
+<ul>
+<li><a href="#暂存区暂存了什么">暂存区暂存了什么</a></li>
+<li><a href="#删除暂存区文件会发生什么">删除暂存区文件会发生什么</a></li>
+</ul>
+</li>
+<li><a href="#git提交">Git提交</a></li>
+<li><a href="#git-revert">Git revert</a></li>
+<li><a href="#git分支">Git分支</a></li>
+<li><a href="#git合并">Git合并</a></li>
+<li><a href="#git-rebase">Git rebase</a></li>
+<li><a href="#git-cherry-pick">Git cherry pick</a></li>
+<li><a href="#git-reset">Git reset</a></li>
+<li><a href="#git标签">Git标签</a></li>
+</ul>
+</li>
+<li><a href="#参考文档">参考文档</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-前言" class="outline-2">
+<h2 id="前言">前言</h2>
+<div class="outline-text-2" id="text-前言">
+</div>
+<div id="outline-container-为什么写" class="outline-3">
+<h3 id="为什么写">为什么写？</h3>
+</div>
+
+<div id="outline-container-适合哪些人看" class="outline-3">
+<h3 id="适合哪些人看">适合哪些人看？</h3>
+<div class="outline-text-3">
+<p>
+适合使用过Git，对Git有了一些了解，但是想进一步向底层探究Git怎么存储提交的内容、不同操作到底对存储的内容做了什么操作，以便在以后使用Git的过程中更得心应手、从容安心的那些人。<br />
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-git仓库内容" class="outline-2">
+<h2 id="git仓库内容">Git仓库内容</h2>
+<div class="outline-text-2">
+<p>
+让我们在空目录下新建一个仓库，看一下Git都会生成什么内容。<br />
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">$ git init .
+$ ls -F1 .git/
+branches/
+config
+description
+HEAD
+hooks/
+info/
+objects/
+refs/
+</pre>
+</div>
+
+<p>
+各目录/文件用途分别是：<br />
+</p>
+<ul class="org-ul">
+<li><code>description</code><br />
+仅在GitWeb程序中使用。<br /></li>
+<li><code>config</code><br />
+本项目相关的配置。<br /></li>
+<li><code>info</code><br />
+有一个全局排除文件，用来保存不希望放到.gitignore文件的忽略模式。<br /></li>
+<li><code>hooks</code><br />
+保存客户/服务侧的hook脚本。<br /></li>
+<li><code>objects</code><br />
+保存所有的数据内容。<br /></li>
+<li><code>refs</code><br />
+保存指向提交对象(commit object)数据（分支，标签，远程仓库等）的指针。<br /></li>
+<li><code>HEAD</code><br />
+指向当前检出的分支。<br /></li>
+</ul>
+
+
+<p>
+后面随着在仓库下工作，Git还会生成别的文件，例如 <code>index</code> ，Git用来保存暂存区信息。<br />
+</p>
+</div>
+</div>
+
+<div id="outline-container-git对象和引用" class="outline-2">
+<h2 id="git对象和引用">Git对象和引用</h2>
+<div class="outline-text-2">
+<p>
+Git是一个内容寻址的文件系统，意思是它的核心是一个简单的 <code>键值对数据存储</code> 。 你可以插入任意类型的信息到Git仓库，Git会为此数据返回一个唯一键，后续可以用这个唯一键来获取插入的数据。<br />
+Git里的对象有下面几种类型。这篇文章就是要探究在不同的操作下，这些对象会不会有什么改变，以及怎么改变。<br />
+</p>
+</div>
+<div id="outline-container-blob对象" class="outline-3">
+<h3 id="blob对象">Blob对象</h3>
+<div class="outline-text-3">
+<p>
+用来存储保存在Git仓库里的每个文件的内容的对象类型。Blob本身没有文件名信息，文件名是在tree对象中记录的。<br />
+</p>
+</div>
+</div>
+<div id="outline-container-tree对象" class="outline-3">
+<h3 id="tree对象">Tree对象</h3>
+<div class="outline-text-3">
+<p>
+Tree对象类似文件系统的目录树，保存Git仓库中目录和文件的关系。每个tree对象包含一个或者多个项，每一项对应一个blob对象或者一个子tree，及其模式，类型和文件名。<br />
+</p>
+</div>
+</div>
+<div id="outline-container-commit对象" class="outline-3">
+<h3 id="commit对象">Commit对象</h3>
+<div class="outline-text-3">
+<p>
+Commit对象是Git仓库的一个快照，记录了当时的文件层次结构以及文件内容。<br />
+</p>
+</div>
+</div>
+<div id="outline-container-tag对象" class="outline-3">
+<h3 id="tag对象"><span class="todo TODO">TODO</span> Tag对象</h3>
+</div>
+<div id="outline-container-引用" class="outline-3">
+<h3 id="引用"><span class="todo TODO">TODO</span> 引用</h3>
+</div>
+</div>
+
+<div id="outline-container-git常用操作探秘" class="outline-2">
+<h2 id="git常用操作探秘">Git常用操作探秘</h2>
+<div class="outline-text-2">
+<p>
+现在开始探究Git的一些常用操作，看看这些操作会给仓库内容带来什么改变。<br />
+</p>
+</div>
+<div id="outline-container-git暂存区" class="outline-3">
+<h3 id="git暂存区"><span class="todo TODO">TODO</span> Git暂存区</h3>
+<div class="outline-text-3" id="text-git暂存区">
+</div>
+<div id="outline-container-暂存区暂存了什么" class="outline-4">
+<h4 id="暂存区暂存了什么">暂存区暂存了什么</h4>
+<div class="outline-text-4">
+<p>
+在空目录下初始化Git仓库，然后添加一个内容为"hello staging area"的文件test1.txt，此时仓库状态如下：<br />
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">$ git status
+&#20301;&#20110;&#20998;&#25903; master
+
+&#23578;&#26080;&#25552;&#20132;
+&#26410;&#36319;&#36394;&#30340;&#25991;&#20214;:
+  &#65288;&#20351;&#29992; <span style="color: #7bc275;">"git add &lt;&#25991;&#20214;&gt;..."</span> &#20197;&#21253;&#21547;&#35201;&#25552;&#20132;&#30340;&#20869;&#23481;&#65289;        test1.txt
+
+&#25552;&#20132;&#20026;&#31354;&#65292;&#20294;&#26159;&#23384;&#22312;&#23578;&#26410;&#36319;&#36394;&#30340;&#25991;&#20214;&#65288;&#20351;&#29992; <span style="color: #7bc275;">"git add"</span> &#24314;&#31435;&#36319;&#36394;&#65289;
+</pre>
+</div>
+
+<p>
+然后我们执行 <code>git add test1.txt</code> 将这个文件添加到暂存区。再看.git目录，发现多了个 <code>index</code> 文件，<br />
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">$ ls -F1 .git/
+branches/
+config
+description
+HEAD
+hooks/
+index
+info/
+objects/
+refs/
+</pre>
+</div>
+<p>
+并且， <code>.git/objects</code> 多了 <b>一个</b> 文件，其sha1哈希值为78d3b5bd4c0bd6a28fc3760c8d48021355e9334e。<br />
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">$ find .git/objects/
+.git/objects/
+.git/objects/78
+.git/objects/78/d3b5bd4c0bd6a28fc3760c8d48021355e9334e
+.git/objects/info
+.git/objects/pack
+</pre>
+</div>
+<p>
+而这个文件的内容就是test1.txt的内容，可以用下面的方式确认：<br />
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">$ git cat-file -p 78d3b5bd4c0bd6a28fc3760c8d48021355e9334e
+hello staging area
+</pre>
+</div>
+
+<p>
+<code>index</code> 文件的内容可以用 <code>git ls-files</code> 查看:<br />
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-删除暂存区文件会发生什么" class="outline-4">
+<h4 id="删除暂存区文件会发生什么">删除暂存区文件会发生什么</h4>
+<div class="outline-text-4">
+<p>
+如果 <code>git add test1.txt</code> 之后不提交，而是把index文件删除，会发生什么呢？<br />
+删除之前，我们看下仓库的状态。<br />
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">10-11 10:15 $ git status
+&#20301;&#20110;&#20998;&#25903; master
+
+&#23578;&#26080;&#25552;&#20132;
+&#35201;&#25552;&#20132;&#30340;&#21464;&#26356;&#65306;  &#65288;&#20351;&#29992; <span style="color: #7bc275;">"git rm --cached &lt;&#25991;&#20214;&gt;..."</span> &#20197;&#21462;&#28040;&#26242;&#23384;&#65289;        &#26032;&#25991;&#20214;&#65306;   test1.txt
+</pre>
+</div>
+
+<p>
+现在我们把 <code>.git/index</code> 文件删除，再次查看仓库的状态。<br />
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">10-11 10:17 $ git status
+&#20301;&#20110;&#20998;&#25903; master
+
+&#23578;&#26080;&#25552;&#20132;
+&#26410;&#36319;&#36394;&#30340;&#25991;&#20214;:
+  &#65288;&#20351;&#29992; <span style="color: #7bc275;">"git add &lt;&#25991;&#20214;&gt;..."</span> &#20197;&#21253;&#21547;&#35201;&#25552;&#20132;&#30340;&#20869;&#23481;&#65289;        test1.txt
+
+&#25552;&#20132;&#20026;&#31354;&#65292;&#20294;&#26159;&#23384;&#22312;&#23578;&#26410;&#36319;&#36394;&#30340;&#25991;&#20214;&#65288;&#20351;&#29992; <span style="color: #7bc275;">"git add"</span> &#24314;&#31435;&#36319;&#36394;&#65289;
+</pre>
+</div>
+<p>
+又变为刚创建 <code>test1.txt</code> 文件时的状态了。<br />
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-git提交" class="outline-3">
+<h3 id="git提交">Git提交</h3>
+<div class="outline-text-3">
+<p>
+接着<a href="#暂存区暂存了什么">暂存区暂存了什么</a>，继续执行 <code>git commit</code> ，看会发生什么。<br />
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">$ git commit -m <span style="color: #7bc275;">'first commit - test1.txt'</span>
+[master&#65288;&#26681;&#25552;&#20132;&#65289; b1bd811] first commit - test1.txt
+ 1 file changed, 1 insertion(+)
+ create mode 100644 test1.txt
+</pre>
+</div>
+<p>
+此时， <code>.git/objects</code> 一共会有三个文件（会多出来两个文件）:<br />
+</p>
+<div class="org-src-container">
+<pre class="src src-txt">* 78d3b5bd4c0bd6a28fc3760c8d48021355e9334e :blob:
+* 788d51e06017d18f7e13400805014bb62bf0fa4e :tree:
+* b1bd8115ad87dce2c44a9c2426f79f5d6c2614b2 :commit:
+</pre>
+</div>
+<p>
+多出来的两个，一个是commit对象，另一个是commit对应的tree对象。查看tree对象的内容，看看是什么。<br />
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">$ git cat-file -p 788d51e0
+100644 blob 78d3b5bd4c0bd6a28fc3760c8d48021355e9334e    test1.txt
+</pre>
+</div>
+<p>
+是test1.txt的信息，就是我们上面说过的模式、类型、哈希值以及文件名。<br />
+</p>
+
+
+<p>
+下面再添加一个子目录sub，并在其中创建一个文件test2.txt后提交看看仓库内容有什么变化。<br />
+此时， <code>.git/objects</code> 下共有七个文件：<br />
+</p>
+<div class="org-src-container">
+<pre class="src src-txt">7d7552231de54326a2ba794777bcad4e281caa58 :commit:
+41ab6b503b10c0d648973cc377686ac7b71184fd :tree:
+be63e09e8f4ed2c6ea9dfa5d320d7321f7ad14f3 :blob:
+80c6ebf0fd4a6820c0630d328c2f4e165c71d6d1 :tree:
+78d3b5bd4c0bd6a28fc3760c8d48021355e9334e :blob:
+788d51e06017d18f7e13400805014bb62bf0fa4e :tree:
+b1bd8115ad87dce2c44a9c2426f79f5d6c2614b2 :commit:
+</pre>
+</div>
+
+<p>
+它们之间的指向关系如下：<br />
+</p>
+<div class="org-src-container">
+<pre class="src src-org"><span style="color: #1e90ff; font-weight: bold;">* 7d755223 </span><span style="color: #7e7e87; font-weight: bold;">:commit:</span>
+<span style="color: #C57BDB; font-weight: bold;">** 41ab6b50 </span><span style="color: #7e7e87; font-weight: bold;">:tree:</span>
+<span style="color: #a991f1; font-weight: bold;">*** 80c6ebf0 </span><span style="color: #7e7e87; font-weight: bold;">:tree:</span>
+    sub
+<span style="color: #7cc3f3; font-weight: bold;">**** be63e09e </span><span style="color: #7e7e87; font-weight: bold;">:blob:</span>
+     test2.txt
+<span style="color: #a991f1; font-weight: bold;">*** 78d3b5bd </span><span style="color: #7e7e87; font-weight: bold;">:blob:</span>
+    test1.txt
+<span style="color: #C57BDB; font-weight: bold;">** b1bd8115 </span><span style="color: #7e7e87; font-weight: bold;">:commit:</span>
+<span style="color: #a991f1; font-weight: bold;">*** 788d51e0 </span><span style="color: #7e7e87; font-weight: bold;">:tree:</span>
+<span style="color: #7cc3f3; font-weight: bold;">**** 78d3b5bd </span><span style="color: #7e7e87; font-weight: bold;">:blob:</span>
+     test1.txt
+</pre>
+</div>
+<p>
+层级关系对不同类型的对象来说含义不同。对于commit来说，内层commit是外层commit的父/祖先commit，例如 <code>b1bd8115</code> 就是 <code>7d755223</code> 的父commit；commit的下级tree表示此commit对应的tree对象；tree就好理解了，可以看成是目录树。<br />
+</p>
+</div>
+</div>
+
+<div id="outline-container-git-revert" class="outline-3">
+<h3 id="git-revert">Git revert</h3>
+</div>
+
+<div id="outline-container-git分支" class="outline-3">
+<h3 id="git分支">Git分支</h3>
+</div>
+
+<div id="outline-container-git合并" class="outline-3">
+<h3 id="git合并">Git合并</h3>
+</div>
+
+<div id="outline-container-git-rebase" class="outline-3">
+<h3 id="git-rebase">Git rebase</h3>
+</div>
+
+<div id="outline-container-git-cherry-pick" class="outline-3">
+<h3 id="git-cherry-pick">Git cherry pick</h3>
+</div>
+
+<div id="outline-container-git-reset" class="outline-3">
+<h3 id="git-reset">Git reset</h3>
+</div>
+
+<div id="outline-container-git标签" class="outline-3">
+<h3 id="git标签">Git标签</h3>
+</div>
+</div>
+
+<div id="outline-container-参考文档" class="outline-2">
+<h2 id="参考文档">参考文档</h2>
+<div class="outline-text-2">
+<ol class="org-ol">
+<li><a href="https://git-scm.com/book/en/v2">Pro Git book</a><br /></li>
+<li><a href="https://git-scm.com/docs/index-format">Git暂存区格式</a><br /></li>
+</ol>
+</div>
+</div>
+
+    </section>
+  </article>
+
+    </main>
+
+    
+    
+      <footer>
+        使用
+        <a href="https://github.com/zbelial/weblorg" target="_blank">
+          我fork的weblorg
+        </a>
+        创建
+      </footer>
+    
+
+  </body>
+</html>
