@@ -218,6 +218,75 @@ blockquote{
     padding-left:1em;
     border-left:3px solid #ccc
 }
+.org-org-todo{
+    color:red;
+    font-weight:700
+}
+.org-org-done{
+    color:#228b22;
+    font-weight:700
+}
+.org-org-warning{
+    color:red;
+    font-weight:700
+}
+.org-warning{
+    color:#ff8c00;
+    font-weight:700
+}
+.org-warning-1{
+    color:red;
+    font-weight:700
+}
+.org-org-upcoming-deadline{
+    color:#b22222
+}
+.org-org-verbatim,.org-org-verse{
+    color:#7f7f7f
+}
+.org-outline-1{
+    color:#00f
+}
+.org-outline-2{
+    color:sienna
+}
+.org-outline-3{
+    color:#a020f0
+}
+.org-outline-4{
+    color:#b22222
+}
+.org-outline-5{
+    color:#228b22
+}
+.org-outline-6{
+    color:#008b8b
+}
+.org-outline-7{
+    color:#483d8b
+}
+.org-outline-8{
+    color:#8b2252
+}
+.todo{
+    background-color:red
+}
+.done,.todo{
+    color:#fff;
+    padding:.1em .3em;
+    border-radius:3px;
+    background-clip:padding-box;
+    font-size:80%;
+    font-family:Lucida Console,monospace;
+    line-height:1
+}
+.done{
+    background-color:green
+}
+.priority{
+    color:orange;
+    font-family:Lucida Console,monospace
+}
 
 /* -- Page -- */
 
