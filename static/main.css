@@ -303,7 +303,24 @@ blockquote{
     background-color:#eee;
     line-height:1
 }
-
+.org-right{
+    margin-left:auto;
+    margin-right:0;
+    text-align:right
+}
+.org-left{
+    margin-left:0;
+    margin-right:auto;
+    text-align:left
+}
+.org-center{
+    margin-left:auto;
+    margin-right:auto;
+    text-align:center
+}
+.underline{
+    text-decoration:underline
+}
 
 /* -- Page -- */
 
