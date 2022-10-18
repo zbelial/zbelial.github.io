@@ -177,7 +177,7 @@ So, let’s try another way of choosing a value. Instead of a single acceptor, l
 </p>
 </blockquote>
 <p>
-所以，我们来尝试另一种选择提案的方式。我们使用多个acceptor而不是一个。Proposer向多个proposer发送提案。Acceptor可能会接受这个提案。如果有足够多的acceptor接受了某个提案，这个提案就被选中了。多少才算足够多呢？要保证只有一个提案被选中，足够多需要包含一半以上的acceptor（即多数集）。因为两个多数集中至少有一个accetpor是共有的，如果一个acceptor最多只能接受一个提案，这种选择提案的方式就是可行的。（在大量的论文中都有关于多数集的归纳陈述，看起来是从<sup><a id="fnr.3.100" class="footref" href="#fn.3" role="doc-backlink">3</a></sup>开始。）<br />
+所以，我们来尝试另一种选择提案的方式。我们使用多个acceptor而不是一个。Proposer向多个proposer发送提案。Acceptor可能会接受这个提案。如果有足够多的acceptor接受了某个提案，这个提案就被选中了。多少才算足够多呢？要保证只有一个提案被选中，足够多需要包含一半以上的acceptor（即多数集）。因为两个多数集中至少有一个acceptor是共有的，如果一个acceptor最多只能接受一个提案，这种选择提案的方式就是可行的。（在大量的论文中都有关于多数集的归纳陈述，看起来是从<sup><a id="fnr.3.100" class="footref" href="#fn.3" role="doc-backlink">3</a></sup>开始。）<br />
 </p>
 
 <blockquote>
@@ -258,9 +258,9 @@ Every acceptor in C has accepted a proposal with number in m..(n − 1), and eve
 </p>
 </blockquote>
 <p>
-为了发现如何满足P2<sup>b</sup>，我们来考虑下怎么证明它成立。我们会假设某个编号为m值、为v的提案被选中，然后展示被提交的、编码为n（n&gt;m）的任何提案的值也是v。我们会对n使用归纳法来简化证明，所以我们会证明在附加条件－－所有被提交的、且编码在m..(n-1)之中的提案的值都是v－－下，编码为n的提案的值也是v，其中i..j表示从i到j的数字的集合。编号为m的提案如果被选中了，肯定会有accetpor的一个多数集C，C中的每个acceptor都接受了m提案。将这个结论和归纳假设结合起来，m被选中这个假设意味着：<br />
-<b>C中的每个acceptor接受了编码在m..(n-1)之中的一个提案，并且被任意acceptor接受的、编码在m..(n-1)之间的每个提案的值是v。</b><br />
-【 <i>译注：C中的每个acceptor至少接受了m提案，上述前半部分成立；后半部分由归纳假设－－所有被提交的、且编码在m..(n-1)之中的提案的值都是v－－即可得到</i> 】<br />
+为了发现如何满足P2<sup>b</sup>，我们来考虑下怎么证明它成立。我们会假设某个编号为m值、为v的提案被选中，然后展示被 <b>提交</b> 的、编号为n（n&gt;m）的任何提案的值也是v。我们会对n使用归纳法来简化证明，所以我们会证明在附加条件－－所有被提交的、且编号在m..(n-1)之中的提案的值都是v－－下，编号为n的提案的值也是v，其中i..j表示从i到j的数字的集合。编号为m的提案如果被选中了，肯定会有acceptor的一个多数集C，C中的每个acceptor都接受了m提案。将这个结论和归纳假设结合起来，m被选中这个假设意味着：<br />
+<b>C中的每个acceptor接受了编号在m..(n-1)之中的一个提案，并且被任意acceptor接受的、编号在m..(n-1)之间的每个提案的值是v。</b><br />
+【 <i>译注：C中的每个acceptor至少接受了m提案，更重要的是，编号在m..(n-1)中的提案要被接受，至少要跟acceptor的多数集提交申请，而这个多数集肯定跟C有交集，因此上面前半部分成立；后半部分由归纳假设－－所有被提交的、且编号在m..(n-1)之中的提案的值都是v－－即可得到</i> 】<br />
 </p>
 
 <blockquote>
@@ -273,12 +273,21 @@ Since any set S consisting of a majority of acceptors contains at least one memb
 We can therefore satisfy P2<sup>b</sup> by maintaining the invariance of P2<sup>c</sup>.<br />
 </p>
 </blockquote>
+<p>
+因为acceptor的任意多数集S都包含C的至少一个成员，只要保持下面的不变式，我们就可以说编号为n的提案的值是v：<br />
+<b>P2<sup>c</sup>. 对于任意的v和n，如果编号为n、值为v的提案被提出，那么有包含acceptor多数集的集合S，满足如下条件之一：(a) S中的所有acceptor都没有接受过编号小于n的提案； (b) S中的acceptor接受过的编号仅次于n的提案的值是v。</b><br />
+保持不变式P2<sup>c</sup>成立就可以满足P2<sup>b</sup>。<br />
+【 <i>译注：满足(a)说明系统没有接受过任何提案；否则，假设接受过的提案是m，接受m的acceptor多数集必定跟S有交集，矛盾了。</i> 】<br />
+</p>
 
 <blockquote>
 <p>
 To maintain the invariance of P2<sup>c</sup>, a proposer that wants to issue a proposal numbered n must learn the highest-numbered proposal with number less than n, if any, that has been or will be accepted by each acceptor in some majority of acceptors. Learning about proposals already accepted is easy enough; predicting future acceptances is hard. Instead of trying to predict the future, the proposer controls it by extracting a promise that there won’t be any such acceptances. In other words, the proposer requests that the acceptors not accept any more proposals numbered less than n. This leads to the following algorithm for issuing proposals.<br />
 </p>
 </blockquote>
+<p>
+为了保持不变式P2<sup>c</sup>成立，想要提交编号为n的提案的proposer必须要知道编号仅次于n且已经或者将要被acceptor的多数集接受的提案（如果提案存在的话）。要知道已经被接受的提案是容易的；预测哪些提案要被接受就难了，proposer设法得到一个不接受编号比n更小的提案的承诺来规避需要预测未来的问题。换句话说，proposer会请求acceptor不要接受任何编号小于n的提案。由此得到的提交提案的算法如下：<br />
+</p>
 
 <blockquote>
 <ol class="org-ol">
