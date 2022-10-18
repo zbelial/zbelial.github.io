@@ -259,12 +259,9 @@ Every acceptor in C has accepted a proposal with number in m..(n − 1), and eve
 </blockquote>
 <p>
 为了发现如何满足P2<sup>b</sup>，我们来考虑下怎么证明它成立。我们会假设某个编号为m值、为v的提案被选中，然后展示被提交的、编码为n（n&gt;m）的任何提案的值也是v。我们会对n使用归纳法来简化证明，所以我们会证明在附加条件－－所有被提交的、且编码在m..(n-1)之中的提案的值都是v－－下，编码为n的提案的值也是v，其中i..j表示从i到j的数字的集合。编号为m的提案如果被选中了，肯定会有accetpor的一个多数集C，C中的每个acceptor都接受了m提案。将这个结论和归纳假设结合起来，m被选中这个假设意味着：<br />
+<b>C中的每个acceptor接受了编码在m..(n-1)之中的一个提案，并且被任意acceptor接受的、编码在m..(n-1)之间的每个提案的值是v。</b><br />
+【 <i>译注：C中的每个acceptor至少接受了m提案，上述前半部分成立；后半部分由归纳假设－－所有被提交的、且编码在m..(n-1)之中的提案的值都是v－－即可得到</i> 】<br />
 </p>
-<div class="org-center">
-<p>
-<b>C中的每个acceptor接受了编码在m..(n-1)之中的一个提案【译注：C中的每个acceptor至少接受了m提案】，并且被任意acceptor接受的、编码在m..(n-1)之间的每个提案的值是v。【译注：由归纳假设－－所有被提交的、且编码在m..(n-1)之中的提案的值都是v－－即可得到】</b><br />
-</p>
-</div>
 
 <blockquote>
 <p>
