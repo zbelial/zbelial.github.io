@@ -197,7 +197,7 @@ But this requirement raises a problem. Several values could be proposed by diffe
 </p>
 </blockquote>
 <p>
-但是这个要求带来一个问题。不同的proposer可能会同时提交多个提案，导致每个acceptor接受一个提案，但是哪个提案都没有被多数集接受。即便只有两个提案，如果每个都被约半数的acceptor接受，单个acceptor出现故障就会导致不会有提案被选中。<br />
+但是这个要求带来一个问题。不同的proposer可能会同时发起多个提案，导致每个acceptor接受一个提案，但是哪个提案都没有被多数集接受。即便只有两个提案，如果每个都被约半数的acceptor接受，单个acceptor出现故障就会导致不会有提案被选中。<br />
 </p>
 
 <blockquote>
@@ -247,8 +247,8 @@ Since a proposal must be issued by a proposer before it can be accepted by an ac
 </p>
 </blockquote>
 <p>
-我们还是要满足P1，以保证某个提案被选中。因为通讯是异步的，可能会出现一个提案被选中了，但是某个accetor（记为c）却从没收到过任何提案。假设某个新的proposer“醒过来”后提交了一个编号更大、值不一样的提案。P1要求c接受这个提案，这就违反了P2<sup>a</sup>。同时满足P1和P2<sup>a</sup>需要将P2<sup>a</sup>加强为：<br />
-<b>P2<sup>b</sup>. 如果一个值为 v 的提案被选中了，那么每个proposer提交的、编号更大的所有提案的值是v。</b><br />
+我们还是要满足P1，以保证某个提案被选中。因为通讯是异步的，可能会出现一个提案被选中了，但是某个accetor（记为c）却从没收到过任何提案。假设某个新的proposer“醒过来”后发起了一个编号更大、值不一样的提案。P1要求c接受这个提案，这就违反了P2<sup>a</sup>。同时满足P1和P2<sup>a</sup>需要将P2<sup>a</sup>加强为：<br />
+<b>P2<sup>b</sup>. 如果一个值为 v 的提案被选中了，那么每个proposer发起的、编号更大的所有提案的值是v。</b><br />
 </p>
 
 <blockquote>
@@ -258,9 +258,9 @@ Every acceptor in C has accepted a proposal with number in m..(n − 1), and eve
 </p>
 </blockquote>
 <p>
-为了发现如何满足P2<sup>b</sup>，我们来考虑下怎么证明它成立。我们会假设某个编号为m值、为v的提案被选中，然后展示被 <b>提交</b> 的、编号为n（n&gt;m）的任何提案的值也是v。我们会对n使用归纳法来简化证明，所以我们会证明在附加条件－－所有被提交的、且编号在m..(n-1)之中的提案的值都是v－－下，编号为n的提案的值也是v，其中i..j表示从i到j的数字的集合。编号为m的提案如果被选中了，肯定会有acceptor的一个多数集C，C中的每个acceptor都接受了m提案。将这个结论和归纳假设结合起来，m被选中这个假设意味着：<br />
+为了发现如何满足P2<sup>b</sup>，我们来考虑下怎么证明它成立。我们会假设某个编号为m值、为v的提案被选中，然后展示被 <b>发起</b> 的、编号为n（n&gt;m）的任何提案的值也是v。我们会对n使用归纳法来简化证明，所以我们会证明在附加条件－－所有被发起的、且编号在m..(n-1)之中的提案的值都是v－－下，编号为n的提案的值也是v，其中i..j表示从i到j的数字的集合。编号为m的提案如果被选中了，肯定会有acceptor的一个多数集C，C中的每个acceptor都接受了m提案。将这个结论和归纳假设结合起来，m被选中这个假设意味着：<br />
 <b>C中的每个acceptor接受了编号在m..(n-1)之中的一个提案，并且被任意acceptor接受的、编号在m..(n-1)之间的每个提案的值是v。</b><br />
-【 <i>译注：C中的每个acceptor至少接受了m提案，更重要的是，编号在m..(n-1)中的提案要被接受，至少要跟acceptor的多数集提交申请，而这个多数集肯定跟C有交集，因此上面前半部分成立；后半部分由归纳假设－－所有被提交的、且编号在m..(n-1)之中的提案的值都是v－－即可得到</i> 】<br />
+【 <i>译注：C中的每个acceptor至少接受了m提案，更重要的是，编号在m..(n-1)中的提案要被接受，至少要跟acceptor的多数集发起申请，而这个多数集肯定跟C有交集，因此上面前半部分成立；后半部分由归纳假设－－所有被发起的、且编号在m..(n-1)之中的提案的值都是v－－即可得到</i> 】<br />
 </p>
 
 <blockquote>
@@ -286,7 +286,7 @@ To maintain the invariance of P2<sup>c</sup>, a proposer that wants to issue a p
 </p>
 </blockquote>
 <p>
-为了保持不变式P2<sup>c</sup>成立，想要提交编号为n的提案的proposer必须要知道编号仅次于n且已经或者将要被acceptor的多数集接受的提案（如果提案存在的话）。要知道已经被接受的提案是容易的；预测哪些提案要被接受就难了，proposer设法得到一个不接受编号比n更小的提案的承诺来规避需要预测未来的问题。换句话说，proposer会请求acceptor不要接受任何编号小于n的提案。由此得到的提交提案的算法如下：<br />
+为了保持不变式P2<sup>c</sup>成立，想要发起编号为n的提案的proposer必须要知道编号仅次于n且已经或者将要被acceptor的多数集接受的提案（如果提案存在的话）。要知道已经被接受的提案是容易的；预测哪些提案要被接受就难了，proposer设法得到一个不接受编号比n更小的提案的承诺来规避需要预测未来的问题。换句话说，proposer会请求acceptor不要接受任何编号小于n的提案。由此得到的发起提案的算法如下：<br />
 </p>
 
 <blockquote>
@@ -305,6 +305,18 @@ I will call such a request a <i>prepare</i> request with number n.<br />
 A proposer issues a proposal by sending, to some set of acceptors, a request that the proposal be accepted. (This need not be the same set of acceptors that responded to the initial requests.) Let’s call this an <i>accept</i> request.<br />
 </p>
 </blockquote>
+<ol class="org-ol">
+<li>Proposer选择一个新的提案编号n，然后向某些acceptor发送请求，要求它们响应如下：<br />
+a. 承诺绝不会在接受编号比n小的提案<br />
+b. 如果接受过编号比n小的提案，将其中编号最大的返回<br /></li>
+</ol>
+<p>
+我将这个请求称为 <b>编码为n的 <i>prepare</i> 请求</b> 。<br />
+</p>
+<ol class="org-ol">
+<li>如果proposer从acceptor的多数集收到了请求的响应，它就会提出一个编号为n、值为v的提案，其中v是步骤1中返回的编号最高的提案的值，或者如果步骤1没有返回任何值，proposer就自己选择一个。<br />
+Proposer提出提案就是向acceptor的一个集合发送接受提案的请求。（这个集合不用非得是步骤1中回复过prepare请求的acceptor集合） 这就是 <i>accept</i> 请求。<br /></li>
+</ol>
 
 <blockquote>
 <p>
@@ -316,6 +328,10 @@ This describes a proposer’s algorithm. What about an acceptor? It can receive 
 Observe that P1<sup>a</sup> subsumes P1.<br />
 </p>
 </blockquote>
+<p>
+上面描述了proposer的算法。Acceptor的算法呢？它会从proposer接收到两种请求：prepare请求和accept请求。Acceptor可以忽略任意的请求而不影响安全性。因此我们只需要说明什么时候acceptor可以响应prepare请求。除非acceptor承诺过，否则它就可以响应accept请求，接受提案。换句话说：<br />
+<b>P1<sup>a</sup>. 当且仅当acceptor没有响应过编号大于n的prepare请求时，它才能接受编号为n的提案。</b><br />
+</p>
 
 <blockquote>
 <p>
@@ -330,6 +346,11 @@ Suppose an acceptor receives a prepare request numbered n, but it has already re
 With this optimization, an acceptor needs to remember only the highestnumbered proposal that it has ever accepted and the number of the highestnumbered prepare request to which it has responded. Because P2<sup>c</sup> must be kept invariant regardless of failures, an acceptor must remember this information even if it fails and then restarts. Note that the proposer can always abandon a proposal and forget all about it—as long as it never tries to issue another proposal with the same number.<br />
 </p>
 </blockquote>
+<p>
+现在我们有了完整的、满足安全性要求（假设提案编号唯一）的选择值的算法。再做一个小的优化之后，就可以得到最终的算法。<br />
+集设acceptor接收到了编号为n的prepare请求，但它已经响应过编号大于n的prepare请求，因此承诺了不会再接受编号为n的请求。因此这个acceptor不响应编号n的请求毫无问题，因为它不会接受这个提案。因此可以让acceptor忽略这种prepare请求。对于已经接受过的提案，它也可以忽略相关的prepare请求。<br />
+有了这个优化，acceptor只需要记住它接受过的编号最大的提案，以及响应过的编号最大的prepare请求的编号。因为不管是不是发生故障，P2<sup>c</sup>的不变式必须保持，所以acceptor必须记下这些信息，即便它出故障后重启了。需要注意的是proposer可以放弃提案，不记录任何信息——只要它不会尝试发起另一个同样编号的提案。<br />
+</p>
 
 <blockquote>
 <p>
@@ -344,12 +365,26 @@ a. If the proposer receives a response to its prepare requests (numbered n) from
 b. If an acceptor receives an accept request for a proposal numbered n, it accepts the proposal unless it has already responded to a prepare request having a number greater than n.<br /></li>
 </ul>
 </blockquote>
+<p>
+将proposer和acceptor的逻辑放一起，我们看到算法分两个步骤执行的：<br />
+</p>
+<ol class="org-ol">
+<li>步骤1<br />
+a. Proposer选择一个提案编号，向acceptor的多数集发送编号为n的prepare请求。<br />
+b. 如果acceptor收到的prepare请求的编号比它曾响应过的所有prepare请求的编号都大，它就响应这个请求，承诺不会再接受编号比n小的任何提案，并且如果接受过提案，则将编号最大的那个提案返回。<br /></li>
+<li>步骤2<br />
+a. 如果proposer从acceptor的多数集收到了针对它的编号n的prepare请求的响应，它就会向那些acceptor为编号n、值为v的提案发送accept请求，其中v是prepare响应中编号最大的提案的值，或者（如果prepare响应中没有提案）任意值。<br />
+b. 如果acceptor收到了针对编号n的提案的accept请求，除非它响应过编号大于n的prepare请求，它就会接受这个提案。<br /></li>
+</ol>
 
 <blockquote>
 <p>
 A proposer can make multiple proposals, so long as it follows the algorithm for each one. It can abandon a proposal in the middle of the protocol at any time. (Correctness is maintained, even though requests and/or responses for the proposal may arrive at their destinations long after the proposal was abandoned.) It is probably a good idea to abandon a proposal if some proposer has begun trying to issue a higher-numbered one. Therefore, if an acceptor ignores a prepare or accept request because it has already received a prepare request with a higher number, then it should probably inform the proposer, who should then abandon its proposal. This is a performance optimization that does not affect correctness.<br />
 </p>
 </blockquote>
+<p>
+一个proposer可以发起多个提案，只要它处理每个提案时都遵循算法。它可以在协议处理的过程中随时放弃某个提案。（不会影响正确性，即便是请求和/或响应在提案被放弃之后很久才被收到）当有其他proposer已经尝试发起编号更高的提案时，放弃当前的提案也不失为一个好主意。因此，如果acceptor因为收到了编号更高的prepare请求而忽略了别的prepare或者accept请求，它应该通知proposer，然后proposer应该放弃它的提案。这是个性能优化，不会影响正确性。<br />
+</p>
 </div>
 </div>
 
