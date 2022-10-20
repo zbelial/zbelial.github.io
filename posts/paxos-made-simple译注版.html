@@ -395,11 +395,19 @@ A proposer can make multiple proposals, so long as it follows the algorithm for 
 <p>
 To learn that a value has been chosen, a learner must find out that a proposal has been accepted by a majority of acceptors. The obvious algorithm is to have each acceptor, whenever it accepts a proposal, respond to all learners, sending them the proposal. This allows learners to find out about a chosen value as soon as possible, but it requires each acceptor to respond to each learner—a number of responses equal to the product of the number of acceptors and the number of learners.<br />
 </p>
+</blockquote>
+<p>
+要获悉某个值被选中了，learner必须查明提案被acceptor的多数集接受了。显而易见的算法是让每个acceptor在接受某个提案之后就告诉给所有learner，把提案发送给它们。这样learner可以尽早地发现被选中的值，但要求每个acceptor要通知到每个learner——消息数是acceptor数和learner数的乘积。<br />
+</p>
 
+<blockquote>
 <p>
 The assumption of non-Byzantine failures makes it easy for one learner to find out from another learner that a value has been accepted. We can have the acceptors respond with their acceptances to a distinguished learner, which in turn informs the other learners when a value has been chosen. This approach requires an extra round for all the learners to discover the chosen value. It is also less reliable, since the distinguished learner could fail. But it requires a number of responses equal only to the sum of the number of acceptors and the number of learners.<br />
 </p>
 </blockquote>
+<p>
+非拜占庭故障假设使得一个learner容易从另一个learner得知某个值被接受了。我们可以让acceptor接受某个提案之后通知learner代表，当值被选中之后，再由这个learner通知其他learner。使用这种方式，其他learner需要一轮额外的通信来发现被选中的值。这种方式可靠性也更差，因为learner代表可能会发生故障。但需要的消息数只是acceptor数和learner数之和。<br />
+</p>
 
 <blockquote>
 <p>
@@ -410,6 +418,10 @@ More generally, the acceptors could respond with their acceptances to some set o
 Because of message loss, a value could be chosen with no learner ever finding out. The learner could ask the acceptors what proposals they have accepted, but failure of an acceptor could make it impossible to know whether or not a majority had accepted a particular proposal. In that case, learners will find out what value is chosen only when a new proposal is chosen. If a learner needs to know whether a value has been chosen, it can have a proposer issue a proposal, using the algorithm described above.<br />
 </p>
 </blockquote>
+<p>
+再延伸一下，acceptor可以在接受某个提案之后通知多个learner代表，每个learner代表可以在值被选中之后再通知所有的learner。Learner代表数越多，可靠性越高，代价就是通讯复杂度更高。<br />
+由于消息会丢失，可能出现某个值被选中，但所有learner都不知道的情形。Learner可以向acceptor询问它们接受了什么提案，但是acceptor发生故障的话，可能就无法知道某个提案是否被acceptor的多数集接受了。这种情况下，只有当有新的提案被选中了，learner才能知道什么值被选中。如果learner需要知道某个值是否被选中，它可以让某个proposer使用上述算法发起一个提案。<br />
+</p>
 </div>
 </div>
 
