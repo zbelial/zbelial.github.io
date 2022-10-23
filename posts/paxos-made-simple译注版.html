@@ -306,14 +306,9 @@ A proposer issues a proposal by sending, to some set of acceptors, a request tha
 </p>
 </blockquote>
 <ol class="org-ol">
-<li>Proposer选择一个新的提案编号n，然后向某些acceptor发送请求，要求它们响应如下：<br />
+<li>Proposer选择一个新的提案编号n，然后向某些acceptor发送请求（我将这个请求称为 <b>编码为n的 <i>prepare</i> 请求</b> ），要求它们响应如下：<br />
 a. 承诺绝不会在接受编号比n小的提案<br />
 b. 如果接受过编号比n小的提案，将其中编号最大的返回<br /></li>
-</ol>
-<p>
-我将这个请求称为 <b>编码为n的 <i>prepare</i> 请求</b> 。<br />
-</p>
-<ol class="org-ol">
 <li>如果proposer从acceptor的多数集收到了请求的响应，它就会提出一个编号为n、值为v的提案，其中v是步骤1中返回的编号最高的提案的值，或者如果步骤1没有返回任何值，proposer就自己选择一个。<br />
 Proposer提出提案就是向acceptor的一个集合发送接受提案的请求。（这个集合不用非得是步骤1中回复过prepare请求的acceptor集合） 这就是 <i>accept</i> 请求。<br /></li>
 </ol>
