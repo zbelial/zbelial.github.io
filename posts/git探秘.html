@@ -62,7 +62,7 @@
 <ul>
 <li><a href="#前言">前言</a>
 <ul>
-<li><a href="#为什么写">为什么写？</a></li>
+<li><a href="#为什么写"><span class="todo TODO">TODO</span> 为什么写？</a></li>
 <li><a href="#适合哪些人看">适合哪些人看？</a></li>
 </ul>
 </li>
@@ -78,16 +78,16 @@
 </li>
 <li><a href="#git常用操作探秘">Git常用操作探秘</a>
 <ul>
-<li><a href="#git暂存区"><span class="todo TODO">TODO</span> Git暂存区</a>
+<li><a href="#git暂存区">Git暂存区</a>
 <ul>
 <li><a href="#暂存区暂存了什么">暂存区暂存了什么</a></li>
 <li><a href="#删除暂存区文件会发生什么">删除暂存区文件会发生什么</a></li>
 </ul>
 </li>
 <li><a href="#git提交">Git提交</a></li>
-<li><a href="#git-revert">Git revert</a></li>
 <li><a href="#git分支">Git分支</a></li>
 <li><a href="#git合并">Git合并</a></li>
+<li><a href="#git-revert">Git revert</a></li>
 <li><a href="#git-rebase">Git rebase</a></li>
 <li><a href="#git-cherry-pick">Git cherry pick</a></li>
 <li><a href="#git-reset">Git reset</a></li>
@@ -104,7 +104,7 @@
 <div class="outline-text-2" id="text-前言">
 </div>
 <div id="outline-container-为什么写" class="outline-3">
-<h3 id="为什么写">为什么写？</h3>
+<h3 id="为什么写"><span class="todo TODO">TODO</span> 为什么写？</h3>
 </div>
 
 <div id="outline-container-适合哪些人看" class="outline-3">
@@ -211,7 +211,7 @@ Commit对象是Git仓库的一个快照，记录了当时的文件层次结构�
 </p>
 </div>
 <div id="outline-container-git暂存区" class="outline-3">
-<h3 id="git暂存区"><span class="todo TODO">TODO</span> Git暂存区</h3>
+<h3 id="git暂存区">Git暂存区</h3>
 <div class="outline-text-3" id="text-git暂存区">
 </div>
 <div id="outline-container-暂存区暂存了什么" class="outline-4">
@@ -273,9 +273,45 @@ hello staging area
 <code>index</code> 文件的内容可以用 <code>git ls-files</code> 查看:<br />
 </p>
 <div class="org-src-container">
-<pre class="src src-bash">
+<pre class="src src-bash">$ git ls-files -s
+100644 78d3b5bd4c0bd6a28fc3760c8d48021355e9334e 0       test1.txt
 </pre>
 </div>
+<p>
+可以看到，index文件的内容就是上面我们添加的文件 <code>test1.txt</code> 以及模式，对应的blob对象等信息。<br />
+</p>
+
+<p>
+下面我们看一下取消文件暂存，index文件会怎么变化。<br />
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">$ git rm --cached test1.txt 
+rm <span style="color: #7bc275;">'test1.txt'</span>
+$ git status
+&#20301;&#20110;&#20998;&#25903; master
+
+&#23578;&#26080;&#25552;&#20132;
+&#26410;&#36319;&#36394;&#30340;&#25991;&#20214;:
+  &#65288;&#20351;&#29992; <span style="color: #7bc275;">"git add &lt;&#25991;&#20214;&gt;..."</span> &#20197;&#21253;&#21547;&#35201;&#25552;&#20132;&#30340;&#20869;&#23481;&#65289;        test1.txt
+
+&#25552;&#20132;&#20026;&#31354;&#65292;&#20294;&#26159;&#23384;&#22312;&#23578;&#26410;&#36319;&#36394;&#30340;&#25991;&#20214;&#65288;&#20351;&#29992; <span style="color: #7bc275;">"git add"</span> &#24314;&#31435;&#36319;&#36394;&#65289;
+</pre>
+</div>
+<p>
+再看下 <code>.git/objects</code> 目录，<br />
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">$ find .git/objects/
+.git/objects/
+.git/objects/78
+.git/objects/78/d3b5bd4c0bd6a28fc3760c8d48021355e9334e
+.git/objects/info
+.git/objects/pack
+</pre>
+</div>
+<p>
+<code>git add</code> 添加的文件并不会因为取消暂存而被删除，但index文件中的记录会删除（但此时index文件并不会被删除，文件长度也不是0），可以再执行 <code>git ls-files -s</code> 来验证。<br />
+</p>
 </div>
 </div>
 <div id="outline-container-删除暂存区文件会发生什么" class="outline-4">
@@ -286,7 +322,7 @@ hello staging area
 删除之前，我们看下仓库的状态。<br />
 </p>
 <div class="org-src-container">
-<pre class="src src-bash">10-11 10:15 $ git status
+<pre class="src src-bash">$ git status
 &#20301;&#20110;&#20998;&#25903; master
 
 &#23578;&#26080;&#25552;&#20132;
@@ -298,7 +334,7 @@ hello staging area
 现在我们把 <code>.git/index</code> 文件删除，再次查看仓库的状态。<br />
 </p>
 <div class="org-src-container">
-<pre class="src src-bash">10-11 10:17 $ git status
+<pre class="src src-bash">$ git status
 &#20301;&#20110;&#20998;&#25903; master
 
 &#23578;&#26080;&#25552;&#20132;
@@ -319,11 +355,12 @@ hello staging area
 <h3 id="git提交">Git提交</h3>
 <div class="outline-text-3">
 <p>
-接着<a href="#暂存区暂存了什么">暂存区暂存了什么</a>，继续执行 <code>git commit</code> ，看会发生什么。<br />
+接着<a href="#暂存区暂存了什么">暂存区暂存了什么</a>，继续执行 <code>git commit</code> ，把test1.txt提交到仓库里，看会发生什么。<br />
 </p>
 <div class="org-src-container">
-<pre class="src src-bash">$ git commit -m <span style="color: #7bc275;">'first commit - test1.txt'</span>
-[master&#65288;&#26681;&#25552;&#20132;&#65289; b1bd811] first commit - test1.txt
+<pre class="src src-bash">$ git add test1.txt
+$ git commit -m <span style="color: #7bc275;">'first commit - test1.txt'</span>
+[master&#65288;&#26681;&#25552;&#20132;&#65289; fe655fb] first commit - test1.txt
  1 file changed, 1 insertion(+)
  create mode 100644 test1.txt
 </pre>
@@ -332,9 +369,9 @@ hello staging area
 此时， <code>.git/objects</code> 一共会有三个文件（会多出来两个文件）:<br />
 </p>
 <div class="org-src-container">
-<pre class="src src-txt">* 78d3b5bd4c0bd6a28fc3760c8d48021355e9334e :blob:
-* 788d51e06017d18f7e13400805014bb62bf0fa4e :tree:
-* b1bd8115ad87dce2c44a9c2426f79f5d6c2614b2 :commit:
+<pre class="src src-text">fe655fb1d5de1e068a1dbcb05ca628fa6076f643 :commit:
+78d3b5bd4c0bd6a28fc3760c8d48021355e9334e :blob:
+788d51e06017d18f7e13400805014bb62bf0fa4e :tree:
 </pre>
 </div>
 <p>
@@ -352,16 +389,39 @@ hello staging area
 
 <p>
 下面再添加一个子目录sub，并在其中创建一个文件test2.txt后提交看看仓库内容有什么变化。<br />
-此时， <code>.git/objects</code> 下共有七个文件：<br />
 </p>
 <div class="org-src-container">
-<pre class="src src-txt">7d7552231de54326a2ba794777bcad4e281caa58 :commit:
-41ab6b503b10c0d648973cc377686ac7b71184fd :tree:
-be63e09e8f4ed2c6ea9dfa5d320d7321f7ad14f3 :blob:
-80c6ebf0fd4a6820c0630d328c2f4e165c71d6d1 :tree:
+<pre class="src src-bash">$ mkdir sub
+$ echo <span style="color: #7bc275;">"hello test2"</span> &gt; sub/test2.txt
+$ git add .
+$ find .git/objects/
+.git/objects/
+.git/objects/fe
+.git/objects/fe/655fb1d5de1e068a1dbcb05ca628fa6076f643
+.git/objects/78
+.git/objects/78/d3b5bd4c0bd6a28fc3760c8d48021355e9334e
+.git/objects/78/8d51e06017d18f7e13400805014bb62bf0fa4e
+.git/objects/info
+.git/objects/pack
+.git/objects/e6
+.git/objects/e6/94444553266392e753e1fd4b168b3f04feb92a
+$ git commit -m <span style="color: #7bc275;">'second commit - sub/test2.txt'</span>
+[master 6087737] second commit - sub/test2.txt
+ 1 file changed, 1 insertion(+)
+ create mode 100644 sub/test2.txt
+</pre>
+</div>
+<p>
+此时， <code>.git/objects</code> 下有如下这些文件：<br />
+</p>
+<div class="org-src-container">
+<pre class="src src-text">608773728b3c86b5ea7f41e551895c96e60b9b91 :commit:
+33a5993d35e13e62cc430ab0c3f842147f1d17e6 :tree:
+fe655fb1d5de1e068a1dbcb05ca628fa6076f643 :commit:
+51abbe01a27c194753550a3feadc49cac946d00a :tree:
 78d3b5bd4c0bd6a28fc3760c8d48021355e9334e :blob:
 788d51e06017d18f7e13400805014bb62bf0fa4e :tree:
-b1bd8115ad87dce2c44a9c2426f79f5d6c2614b2 :commit:
+e694444553266392e753e1fd4b168b3f04feb92a :blob:
 </pre>
 </div>
 
@@ -369,28 +429,24 @@ b1bd8115ad87dce2c44a9c2426f79f5d6c2614b2 :commit:
 它们之间的指向关系如下：<br />
 </p>
 <div class="org-src-container">
-<pre class="src src-org"><span style="color: #1e90ff; font-weight: bold;">* 7d755223 </span><span style="color: #7e7e87; font-weight: bold;">:commit:</span>
-<span style="color: #C57BDB; font-weight: bold;">** 41ab6b50 </span><span style="color: #7e7e87; font-weight: bold;">:tree:</span>
-<span style="color: #a991f1; font-weight: bold;">*** 80c6ebf0 </span><span style="color: #7e7e87; font-weight: bold;">:tree:</span>
+<pre class="src src-org"><span style="color: #1e90ff; font-weight: bold;">* 60877372 </span><span style="color: #7e7e87; font-weight: bold;">:commit:</span>
+<span style="color: #C57BDB; font-weight: bold;">** 33a5993d </span><span style="color: #7e7e87; font-weight: bold;">:tree:</span>
+<span style="color: #a991f1; font-weight: bold;">*** 51abbe01 </span><span style="color: #7e7e87; font-weight: bold;">:tree:</span>
     sub
-<span style="color: #7cc3f3; font-weight: bold;">**** be63e09e </span><span style="color: #7e7e87; font-weight: bold;">:blob:</span>
+<span style="color: #7cc3f3; font-weight: bold;">**** e6944445 </span><span style="color: #7e7e87; font-weight: bold;">:blob:</span>
      test2.txt
 <span style="color: #a991f1; font-weight: bold;">*** 78d3b5bd </span><span style="color: #7e7e87; font-weight: bold;">:blob:</span>
     test1.txt
-<span style="color: #C57BDB; font-weight: bold;">** b1bd8115 </span><span style="color: #7e7e87; font-weight: bold;">:commit:</span>
+<span style="color: #C57BDB; font-weight: bold;">** fe655fb1 </span><span style="color: #7e7e87; font-weight: bold;">:commit:</span>
 <span style="color: #a991f1; font-weight: bold;">*** 788d51e0 </span><span style="color: #7e7e87; font-weight: bold;">:tree:</span>
 <span style="color: #7cc3f3; font-weight: bold;">**** 78d3b5bd </span><span style="color: #7e7e87; font-weight: bold;">:blob:</span>
      test1.txt
 </pre>
 </div>
 <p>
-层级关系对不同类型的对象来说含义不同。对于commit来说，内层commit是外层commit的父/祖先commit，例如 <code>b1bd8115</code> 就是 <code>7d755223</code> 的父commit；commit的下级tree表示此commit对应的tree对象；tree就好理解了，可以看成是目录树。<br />
+层级关系对不同类型的对象来说含义不同。对于commit来说，内层commit是外层commit的父/祖先commit，例如 <code>fe655fb</code> 就是 <code>60877372</code> 的父commit；commit的下级tree表示此commit对应的tree对象；tree就好理解了，可以看成是目录树。<br />
 </p>
 </div>
-</div>
-
-<div id="outline-container-git-revert" class="outline-3">
-<h3 id="git-revert">Git revert</h3>
 </div>
 
 <div id="outline-container-git分支" class="outline-3">
@@ -399,6 +455,10 @@ b1bd8115ad87dce2c44a9c2426f79f5d6c2614b2 :commit:
 
 <div id="outline-container-git合并" class="outline-3">
 <h3 id="git合并">Git合并</h3>
+</div>
+
+<div id="outline-container-git-revert" class="outline-3">
+<h3 id="git-revert">Git revert</h3>
 </div>
 
 <div id="outline-container-git-rebase" class="outline-3">
