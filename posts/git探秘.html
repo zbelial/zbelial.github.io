@@ -298,7 +298,7 @@ $ git status
 </pre>
 </div>
 <p>
-再看下 <code>.git/objects</code> 目录，<br />
+看下 <code>.git/objects</code> 目录，<br />
 </p>
 <div class="org-src-container">
 <pre class="src src-bash">$ find .git/objects/
@@ -311,6 +311,10 @@ $ git status
 </div>
 <p>
 <code>git add</code> 添加的文件并不会因为取消暂存而被删除，但index文件中的记录会删除（但此时index文件并不会被删除，文件长度也不是0），可以再执行 <code>git ls-files -s</code> 来验证。<br />
+</p>
+
+<p>
+还有一个需要的点，因为暂存区是下次要提交的仓库快照，所以它会包含仓库中git记录的所有文件，而不仅仅是上次提交之后通过 <code>git add</code> 添加到暂存区的文件。<br />
 </p>
 </div>
 </div>
@@ -385,7 +389,6 @@ $ git commit -m <span style="color: #7bc275;">'first commit - test1.txt'</span>
 <p>
 是test1.txt的信息，就是我们上面说过的模式、类型、哈希值以及文件名。<br />
 </p>
-
 
 <p>
 下面再添加一个子目录sub，并在其中创建一个文件test2.txt后提交看看仓库内容有什么变化。<br />
