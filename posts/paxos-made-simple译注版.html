@@ -73,6 +73,7 @@
 </li>
 <li><a href="#实现一个状态机-implementing-a-state-machine">实现一个状态机（Implementing a State Machine）</a></li>
 <li><a href="#参考文献">参考文献</a></li>
+<li><a href="#译注参考文献">译注参考文献</a></li>
 </ul>
 </div>
 </div>
@@ -94,11 +95,11 @@
 <div class="outline-text-2">
 <blockquote>
 <p>
-The Paxos algorithm for implementing a fault-tolerant distributed system has been regarded as difficult to understand, perhaps because the original presentation was Greek to many readers<sup><a id="fnr.1" class="footref" href="#fn.1" role="doc-backlink">1</a></sup>. In fact, it is among the simplest and most obvious of distributed algorithms. At its heart is a consensus algorithm &#x2013; the "synod" algorithm of <sup><a id="fnr.1.100" class="footref" href="#fn.1" role="doc-backlink">1</a></sup>. The next section shows that this consensus algorithm follows almost unavoidably from the properties we want it to satify. The last section explains the complete Paxos algorithm, which is obtained by the straightforward application of consensus to the state machine approach for building a distributed system&#x2013;an approach that should be well-known, since it is the subject of what is probably the most often-cited article on the theory of distributed systems<sup><a id="fnr.2" class="footref" href="#fn.2" role="doc-backlink">2</a></sup>.<br />
+The Paxos algorithm for implementing a fault-tolerant distributed system has been regarded as difficult to understand, perhaps because the original presentation was Greek to many readers[5]. In fact, it is among the simplest and most obvious of distributed algorithms. At its heart is a consensus algorithm &#x2013; the "synod" algorithm of [5]. The next section shows that this consensus algorithm follows almost unavoidably from the properties we want it to satify. The last section explains the complete Paxos algorithm, which is obtained by the straightforward application of consensus to the state machine approach for building a distributed system&#x2013;an approach that should be well-known, since it is the subject of what is probably the most often-cited article on the theory of distributed systems[4].<br />
 </p>
 </blockquote>
 <p>
-一直以来，人们都认为用于实现可容错的分布式系统的Paxos算法难以理解，可能是由于原稿的语言是希腊语<sup><a id="fnr.1.100" class="footref" href="#fn.1" role="doc-backlink">1</a></sup>。其实它是最简单直观的分布式算法之一。Paxos的核心是一个共识算法，也就是<sup><a id="fnr.1.100" class="footref" href="#fn.1" role="doc-backlink">1</a></sup>中提到的“synod”算法。下一节显示了这个共识算法自然而然地脱胎于我们希望它满足的特性。最后一节通过将共识算法应用于状态机来构建一个分布式系统的方式（这种方式可以说广为人知，因为它是分布式理论这一领域里可能最常被引用的文章<sup><a id="fnr.2.100" class="footref" href="#fn.2" role="doc-backlink">2</a></sup>的主题）解释了完整的Paxos算法。<br />
+一直以来，人们都认为用于实现可容错的分布式系统的Paxos算法难以理解，可能是由于原稿的语言是希腊语[5]。其实它是最简单直观的分布式算法之一。Paxos的核心是一个共识算法，也就是[5]中提到的“synod”算法。下一节显示了这个共识算法自然而然地脱胎于我们希望它满足的特性。最后一节通过将共识算法应用于状态机来构建一个分布式系统的方式（这种方式可以说广为人知，因为它是分布式理论这一领域里可能最常被引用的文章[4]的主题）解释了完整的Paxos算法。<br />
 </p>
 </div>
 </div>
@@ -131,7 +132,7 @@ Assume a collection of processes that can propose values. A consensus algorithm 
 
 
 <p>
-【译注：safety 不好的事情一定不会发生。】<br />
+【 <i>译注：safety —— 不好的事情一定不会发生。</i> 】<br />
 </p>
 <blockquote>
 <p>
@@ -180,11 +181,11 @@ The easiest way to choose a value is to have a single acceptor agent. A proposer
 
 <blockquote>
 <p>
-So, let’s try another way of choosing a value. Instead of a single acceptor, let’s use multiple acceptor agents. A proposer sends a proposed value to a set of acceptors. An acceptor may accept the proposed value. The value is chosen when a large enough set of acceptors have accepted it. How large is large enough? To ensure that only a single value is chosen, we can let a large enough set consist of any majority of the agents. Because any two majorities have at least one acceptor in common, this works if an acceptor can accept at most one value. (There is an obvious generalization of a majority that has been observed in numerous papers, apparently starting with <sup><a id="fnr.3" class="footref" href="#fn.3" role="doc-backlink">3</a></sup>.)<br />
+So, let’s try another way of choosing a value. Instead of a single acceptor, let’s use multiple acceptor agents. A proposer sends a proposed value to a set of acceptors. An acceptor may accept the proposed value. The value is chosen when a large enough set of acceptors have accepted it. How large is large enough? To ensure that only a single value is chosen, we can let a large enough set consist of any majority of the agents. Because any two majorities have at least one acceptor in common, this works if an acceptor can accept at most one value. (There is an obvious generalization of a majority that has been observed in numerous papers, apparently starting with [3].)<br />
 </p>
 </blockquote>
 <p>
-所以，我们来尝试另一种选择提案的方式。我们使用多个acceptor而不是一个。Proposer向多个proposer发送提案。Acceptor可能会接受这个提案。如果有足够多的acceptor接受了某个提案，这个提案就被选中了。多少才算足够多呢？要保证只有一个提案被选中，足够多需要包含一半以上的acceptor（即多数集）。因为两个多数集中至少有一个acceptor是共有的，如果一个acceptor最多只能接受一个提案，这种选择提案的方式就是可行的。（在大量的论文中都有关于多数集的归纳陈述，看起来是从<sup><a id="fnr.3.100" class="footref" href="#fn.3" role="doc-backlink">3</a></sup>开始。）<br />
+所以，我们来尝试另一种选择提案的方式。我们使用多个acceptor而不是一个。Proposer向多个proposer发送提案。Acceptor可能会接受这个提案。如果有足够多的acceptor接受了某个提案，这个提案就被选中了。多少才算足够多呢？要保证只有一个提案被选中，足够多需要包含一半以上的acceptor（即多数集）。因为两个多数集中至少有一个acceptor是共有的，如果一个acceptor最多只能接受一个提案，这种选择提案的方式就是可行的。（在大量的论文中都有关于多数集的归纳陈述，看起来是从[3]开始。）<br />
 </p>
 
 <blockquote>
@@ -354,25 +355,28 @@ Observe that P1<sup>a</sup> subsumes P1.<br />
 <p>
 We now have a complete algorithm for choosing a value that satisfies the required safety properties—assuming unique proposal numbers. The final algorithm is obtained by making one small optimization.<br />
 </p>
-
-<p>
-Suppose an acceptor receives a prepare request numbered n, but it has already responded to a prepare request numbered greater than n, thereby promising not to accept any new proposal numbered n. There is then no reason for the acceptor to respond to the new prepare request, since it will not accept the proposal numbered n that the proposer wants to issue. So we have the acceptor ignore such a prepare request. We also have it ignore a prepare request for a proposal it has already accepted.<br />
-</p>
-
-<p>
-With this optimization, an acceptor needs to remember only the highestnumbered proposal that it has ever accepted and the number of the highestnumbered prepare request to which it has responded. Because P2<sup>c</sup> must be kept invariant regardless of failures, an acceptor must remember this information even if it fails and then restarts. Note that the proposer can always abandon a proposal and forget all about it—as long as it never tries to issue another proposal with the same number.<br />
-</p>
 </blockquote>
 <p>
 现在我们有了完整的、满足安全性要求（假设提案编号唯一）的选择值的算法。再做一个小的优化之后，就可以得到最终的算法。<br />
 </p>
 
+<blockquote>
 <p>
-集设acceptor接收到了编号为n的prepare请求，但它已经响应过编号大于n的prepare请求，因此承诺了不会再接受编号为n的请求。因此这个acceptor不响应编号n的请求毫无问题，因为它不会接受这个提案。因此可以让acceptor忽略这种prepare请求。对于已经接受过的提案，它也可以忽略相关的prepare请求。<br />
+Suppose an acceptor receives a prepare request numbered n, but it has already responded to a prepare request numbered greater than n, thereby promising not to accept any new proposal numbered n. There is then no reason for the acceptor to respond to the new prepare request, since it will not accept the proposal numbered n that the proposer wants to issue. So we have the acceptor ignore such a prepare request. We also have it ignore a prepare request for a proposal it has already accepted.<br />
+</p>
+</blockquote>
+<p>
+集设acceptor接收到了编号为n的prepare请求，但它已经响应过编号大于n的prepare请求，承诺过不会再接受编号为n的请求。因此这个acceptor不响应编号n的请求毫无问题，因为它不会接受这个提案。因此可以让acceptor忽略这种prepare请求。对于已经接受过的提案，它也可以忽略相关的prepare请求。<br />
+【 <i>译注：理论上直接忽略没有问题，但是实现时，这么直接忽略感觉并不好，因为需要proposer超时等待，所以acceptor直接返回了Nack更好。</i> 】<br />
 </p>
 
+<blockquote>
 <p>
-有了这个优化，acceptor只需要记住它接受过的编号最大的提案，以及响应过的编号最大的prepare请求的编号。因为不管是不是发生故障，P2<sup>c</sup>的不变式必须保持，所以acceptor必须记下这些信息，即便它出故障后重启了。需要注意的是proposer可以放弃提案，不记录任何信息——只要它不会尝试发起另一个同样编号的提案。<br />
+With this optimization, an acceptor needs to remember only the highestnumbered proposal that it has ever accepted and the number of the highestnumbered prepare request to which it has responded. Because P2<sup>c</sup> must be kept invariant regardless of failures, an acceptor must remember this information even if it fails and then restarts. Note that the proposer can always abandon a proposal and forget all about it—as long as it never tries to issue another proposal with the same number.<br />
+</p>
+</blockquote>
+<p>
+有了这个优化，acceptor只需要记住它接受过的编号最大的提案，以及响应过的编号最大的prepare请求的编号。因为不管是不是发生故障，P2<sup>c</sup>的不变式必须保持，所以acceptor必须记下这些信息，即便它出故障后重启了。需要注意的是，proposer可以放弃提案，不记录任何信息——只要它不会尝试发起另一个同样编号的提案就行。<br />
 </p>
 
 <blockquote>
@@ -454,6 +458,10 @@ Because of message loss, a value could be chosen with no learner ever finding ou
 <div id="outline-container-进展-progress" class="outline-3">
 <h3 id="进展-progress">进展（Progress）</h3>
 <div class="outline-text-3">
+<p>
+【 <i>译注：progress —— 好的事情最终一定会发生。</i> 】<br />
+</p>
+
 <blockquote>
 <p>
 It’s easy to construct a scenario in which two proposers each keep issuing a sequence of proposals with increasing numbers, none of which are ever chosen. Proposer p completes phase 1 for a proposal number n1. Another proposer q then completes phase 1 for a proposal number n2 &gt; n1. Proposer p’s phase 2 accept requests for a proposal numbered n1 are ignored because the acceptors have all promised not to accept any new proposal numbered less than n2. So, proposer p then begins and completes phase 1 for a new proposal number n3 &gt; n2, causing the second phase 2 accept requests of proposer q to be ignored. And so on.<br />
@@ -474,11 +482,11 @@ To guarantee progress, a distinguished proposer must be selected as the only one
 
 <blockquote>
 <p>
-If enough of the system (proposer, acceptors, and communication network) is working properly, liveness can therefore be achieved by electing a single distinguished proposer. The famous result of Fischer, Lynch, and Patterson <sup><a id="fnr.4" class="footref" href="#fn.4" role="doc-backlink">4</a></sup> implies that a reliable algorithm for electing a proposer must use either randomness or real time—for example, by using timeouts. However, safety is ensured regardless of the success or failure of the election.<br />
+If enough of the system (proposer, acceptors, and communication network) is working properly, liveness can therefore be achieved by electing a single distinguished proposer. The famous result of Fischer, Lynch, and Patterson [1] implies that a reliable algorithm for electing a proposer must use either randomness or real time—for example, by using timeouts. However, safety is ensured regardless of the success or failure of the election.<br />
 </p>
 </blockquote>
 <p>
-当系统有足够多的部分（一个proposer，一些acceptor以及通信网络）能够正常运行，通过选出单个proposer代表，liveness就可以保证。Fischer，Lynch和Patternson<sup><a id="fnr.4.100" class="footref" href="#fn.4" role="doc-backlink">4</a></sup>的著名研究结果表明，可靠的选举proposer的算法必须使用随机或者真实时间——例如，使用超时。但是，不管选举成功还是失败，安全性都能保证。<br />
+当系统有足够多的部分（一个proposer，一些acceptor以及通信网络）能够正常运行，通过选出单个proposer代表，liveness就可以保证。Fischer，Lynch和Patternson[1]的著名研究结果表明，可靠的选举proposer的算法必须使用随机或者真实时间——例如，使用超时。但是，不管选举成功还是失败，安全性都能保证。<br />
 </p>
 </div>
 </div>
@@ -488,11 +496,11 @@ If enough of the system (proposer, acceptors, and communication network) is work
 <div class="outline-text-3">
 <blockquote>
 <p>
-The Paxos algorithm <sup><a id="fnr.1.100" class="footref" href="#fn.1" role="doc-backlink">1</a></sup> assumes a network of processes. In its consensus algorithm, each process plays the role of proposer, acceptor, and learner. The algorithm chooses a leader, which plays the roles of the distinguished proposer and the distinguished learner. The Paxos consensus algorithm is precisely the one described above, where requests and responses are sent as ordinary messages. (Response messages are tagged with the corresponding proposal number to prevent confusion.) Stable storage, preserved during failures, is used to maintain the information that the acceptor must remember. An acceptor records its intended response in stable storage before actually sending the response.<br />
+The Paxos algorithm [5] assumes a network of processes. In its consensus algorithm, each process plays the role of proposer, acceptor, and learner. The algorithm chooses a leader, which plays the roles of the distinguished proposer and the distinguished learner. The Paxos consensus algorithm is precisely the one described above, where requests and responses are sent as ordinary messages. (Response messages are tagged with the corresponding proposal number to prevent confusion.) Stable storage, preserved during failures, is used to maintain the information that the acceptor must remember. An acceptor records its intended response in stable storage before actually sending the response.<br />
 </p>
 </blockquote>
 <p>
-Paxos算法<sup><a id="fnr.1.100" class="footref" href="#fn.1" role="doc-backlink">1</a></sup>假定了一个由进程组成的网络。在Paxos的共识算法中，每个进程充当proposer，acceptor和learner的角色。算法会选出一个leader，作为proposer代表和learner代表。Paxos算法恰如上面描述的那样，请求和响应都是以普通的消息发送（响应消息中会带上相应的提案编号以防出现混乱）。稳定存储（故障发生时能够保留数据）用来保存acceptor必须要记住的信息。Acceptor在返回响应数据之前就要把数据保存到稳定存储中。<br />
+Paxos算法[5]假定了一个由进程组成的网络。在Paxos的共识算法中，每个进程充当proposer，acceptor和learner的角色。算法会选出一个leader，作为proposer代表和learner代表。Paxos算法恰如上面描述的那样，请求和响应都是以普通的消息发送（响应消息中会带上相应的提案编号以防出现混乱）。稳定存储（故障发生时能够保留数据）用来保存acceptor必须要记住的信息。Acceptor在返回响应数据之前就要把数据保存到稳定存储中。<br />
 </p>
 
 <blockquote>
@@ -610,11 +618,11 @@ A newly chosen leader executes phase 1 for infinitely many instances of the cons
 
 <blockquote>
 <p>
-Since failure of the leader and election of a new one should be rare events, the effective cost of executing a state machine command—that is, of achieving consensus on the command/value—is the cost of executing only phase 2 of the consensus algorithm. It can be shown that phase 2 of the Paxos consensus algorithm has the minimum possible cost of any algorithm for reaching agreement in the presence of faults <sup><a id="fnr.5" class="footref" href="#fn.5" role="doc-backlink">5</a></sup>. Hence, the Paxos algorithm is essentially optimal.<br />
+Since failure of the leader and election of a new one should be rare events, the effective cost of executing a state machine command—that is, of achieving consensus on the command/value—is the cost of executing only phase 2 of the consensus algorithm. It can be shown that phase 2 of the Paxos consensus algorithm has the minimum possible cost of any algorithm for reaching agreement in the presence of faults [2]. Hence, the Paxos algorithm is essentially optimal.<br />
 </p>
 </blockquote>
 <p>
-因Leader发生故障而选一个新的leader很少见，执行一个状态机命令的实际成本——即对命令/值达成共识——就是执行算法的阶段2的成本。在可能出现故障的情况下，所有的共识算法中，Paxos算法的阶段2的可以触及成本下限<sup><a id="fnr.5.100" class="footref" href="#fn.5" role="doc-backlink">5</a></sup>。因此，根本上来说Paxos是最好的。<br />
+因Leader发生故障而选一个新的leader很少见，执行一个状态机命令的实际成本——即对命令/值达成共识——就是执行算法的阶段2的成本。在可能出现故障的情况下，所有的共识算法中，Paxos算法的阶段2的可以触及成本下限[2]。因此，根本上来说Paxos是最好的。<br />
 </p>
 
 <blockquote>
@@ -640,35 +648,37 @@ If the set of servers can change, then there must be some way of determining wha
 <div id="outline-container-参考文献" class="outline-2">
 <h2 id="参考文献">参考文献</h2>
 <div class="outline-text-2">
+<p>
+[1] Michael J. Fischer, Nancy Lynch, and Michael S. Paterson. Impossibility of distributed consensus with one faulty process. Journal of the ACM, 32(2):374–382, April 1985.<br />
+</p>
+
+<p>
+[2] Idit Keidar and Sergio Rajsbaum. On the cost of fault-tolerant consensus when there are no faults—a tutorial. TechnicalReport MIT-LCS-TR-821, Laboratory for Computer Science, Massachusetts Institute Technology, Cambridge, MA, 02139, May 2001. also published in SIGACT News 32(2) (June 2001).<br />
+</p>
+
+<p>
+[3] Leslie Lamport. The implementation of reliable distributed multiprocess systems. Computer Networks, 2:95–114, 1978.<br />
+</p>
+
+<p>
+[4] Leslie Lamport. Time, clocks, and the ordering of events in a distributed system. Communications of the ACM, 21(7):558–565, July 1978.<br />
+</p>
+
+<p>
+[5] Leslie Lamport. The part-time parliament. ACM Transactions on Com- puter Systems, 16(2):133–169, May 1998.<br />
+</p>
 </div>
 </div>
-<div id="footnotes">
-<h2 class="footnotes">Footnotes: </h2>
-<div id="text-footnotes">
 
-<div class="footdef"><sup><a id="fn.1" class="footnum" href="#fnr.1" role="doc-backlink">1</a></sup> <div class="footpara" role="doc-footnote"><p class="footpara">
-Leslie Lamport. The part-time parliament. ACM Transactions on Com- puter Systems, 16(2):133–169, May 1998.<br />
-</p></div></div>
-
-<div class="footdef"><sup><a id="fn.2" class="footnum" href="#fnr.2" role="doc-backlink">2</a></sup> <div class="footpara" role="doc-footnote"><p class="footpara">
-Leslie Lamport. Time, clocks, and the ordering of events in a distributed system. Communications of the ACM, 21(7):558–565, July 1978.<br />
-</p></div></div>
-
-<div class="footdef"><sup><a id="fn.3" class="footnum" href="#fnr.3" role="doc-backlink">3</a></sup> <div class="footpara" role="doc-footnote"><p class="footpara">
-Leslie Lamport. The implementation of reliable distributed multiprocess systems. Computer Networks, 2:95–114, 1978.<br />
-</p></div></div>
-
-<div class="footdef"><sup><a id="fn.4" class="footnum" href="#fnr.4" role="doc-backlink">4</a></sup> <div class="footpara" role="doc-footnote"><p class="footpara">
-Michael J. Fischer, Nancy Lynch, and Michael S. Paterson. Impossibility of distributed consensus with one faulty process. Journal of the ACM, 32(2):374–382, April 1985.<br />
-</p></div></div>
-
-<div class="footdef"><sup><a id="fn.5" class="footnum" href="#fnr.5" role="doc-backlink">5</a></sup> <div class="footpara" role="doc-footnote"><p class="footpara">
-Idit Keidar and Sergio Rajsbaum. On the cost of fault-tolerant consensus when there are no faults—a tutorial. TechnicalReport MIT-LCS-TR-821, Laboratory for Computer Science, Massachusetts Institute Technology, Cambridge, MA, 02139, May 2001. also published in SIGACT News 32(2) (June 2001).<br />
-</p></div></div>
-
-
+<div id="outline-container-译注参考文献" class="outline-2">
+<h2 id="译注参考文献">译注参考文献</h2>
+<div class="outline-text-2">
+<ol class="org-ol">
+<li><a href="https://understandingpaxos.wordpress.com/">Understanding Paxos</a><br /></li>
+</ol>
 </div>
 </div>
+
     </section>
   </article>
 
