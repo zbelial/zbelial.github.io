@@ -425,7 +425,7 @@ To learn that a value has been chosen, a learner must find out that a proposal h
 </p>
 </blockquote>
 <p>
-要获悉某个值被选中了，learner必须查明提案被acceptor的多数集接受了。一个很容易想到的算法是让每个acceptor在接受某个提案之后就通知所有learner，把提案发送给它们。这样learner可以尽早地发现被选中的值，但要求每个acceptor要通知到每个learner——消息数是acceptor数和learner数的乘积。<br />
+要获悉某个值被选中了，learner必须了解到提案被acceptor的多数集接受了。一个显而易见的算法是让每个acceptor在接受某个提案之后就通知所有learner，把提案发送给它们。这样learner可以尽早地发现被选中的值，但要求每个acceptor要通知到每个learner——消息数是acceptor数和learner数的乘积。<br />
 </p>
 
 <blockquote>
@@ -434,7 +434,7 @@ The assumption of non-Byzantine failures makes it easy for one learner to find o
 </p>
 </blockquote>
 <p>
-非拜占庭故障假设使得一个learner容易从另一个learner得知某个值被接受了。我们可以让acceptor接受某个提案之后通知learner代表，当值被选中之后，再由这个learner通知其他learner。使用这种方式，其他learner需要一轮额外的通信来发现被选中的值。这种方式可靠性也更差，因为learner代表可能会发生故障。但需要的消息数只是acceptor数和learner数之和。<br />
+非拜占庭故障假设使得一个learner容易从另一个learner得知某个值被接受了。我们可以让acceptor接受某个提案之后通知一个learner代表，当某个值被选中之后，再由这个learner通知其他learner。使用这种方式，其他learner需要一轮额外的通信来发现被选中的值。这种方式可靠性也更差，因为learner代表可能会发生故障。但需要的消息数只是acceptor数和learner数之和。<br />
 </p>
 
 <blockquote>
@@ -451,7 +451,7 @@ Because of message loss, a value could be chosen with no learner ever finding ou
 </p>
 
 <p>
-由于消息会丢失，可能出现某个值被选中，但所有learner都不知道的情形。Learner可以向acceptor询问它们接受了什么提案，但是acceptor发生故障的话，可能就无法知道某个提案是否被acceptor的多数集接受了。这种情况下，只有当有新的提案被选中了，learner才能知道什么值被选中。如果learner需要知道某个值是否被选中，它可以让某个proposer使用上述算法发起一个提案。<br />
+由于消息会丢失，可能出现某个值被选中，但所有learner都不知道的情形。Learner可以向acceptor询问它们接受了什么提案，但是如果有某个acceptor发生故障，可能就无法知道某个提案是否被acceptor的多数集接受了。这种情况下，只有当有新的提案被选中了，learner才能知道什么值被选中。如果learner需要知道某个值是否被选中，它可以让某个proposer使用上述算法发起一个提案。<br />
 </p>
 </div>
 </div>
@@ -460,7 +460,7 @@ Because of message loss, a value could be chosen with no learner ever finding ou
 <h3 id="进展-progress">进展（Progress）</h3>
 <div class="outline-text-3">
 <p>
-【 <i>译注：progress —— 好的事情最终一定会发生。</i> 】<br />
+【 <i>译注：progress —— 好的事情最终一定会发生。在Paxos，也就是最终会选中某个值，所有learner也能知道哪个值被选中了。</i> 】<br />
 </p>
 
 <blockquote>
@@ -478,7 +478,7 @@ To guarantee progress, a distinguished proposer must be selected as the only one
 </p>
 </blockquote>
 <p>
-为了保证算法不空转，必须选出一个proposer代表，只由它来尝试发起提案。如果proposer代表可以跟acceptor多数集正常通信，并且它使用的提案编号比以往用过的都大，那它就能成功发起会被接受的提案。如果proposer代表发现有更大编号的提案出现后放弃当前提案并重试，它最终会选出一个足够大的提案编号。<br />
+为了保证算法能有进展，必须选出一个proposer代表，只由它来尝试发起提案。如果proposer代表可以跟acceptor多数集正常通信，并且它使用的提案编号比以往用过的都大，那它就能成功发起会被接受的提案。如果proposer代表发现有更大编号的提案出现后放弃当前提案并重试，它最终会选出一个足够大的提案编号。<br />
 </p>
 
 <blockquote>
@@ -487,7 +487,7 @@ If enough of the system (proposer, acceptors, and communication network) is work
 </p>
 </blockquote>
 <p>
-当系统有足够多的部分（一个proposer，一些acceptor以及通信网络）能够正常运行，通过选出单个proposer代表，liveness就可以保证。Fischer，Lynch和Patternson[1]的著名研究结果表明，可靠的选举proposer的算法必须使用随机或者真实时间——例如，使用超时。但是，不管选举成功还是失败，安全性都能保证。<br />
+当系统有足够多的部分（proposer，acceptor们以及通信网络）能够正常运行，通过选出单个proposer代表，liveness就可以保证。Fischer，Lynch和Patternson[1]的著名研究结果表明，可靠的选举proposer的算法必须使用随机或者真实时间——例如，使用超时。但是，不管选举成功还是失败，安全性都能保证。<br />
 </p>
 </div>
 </div>
