@@ -99,7 +99,7 @@ The Paxos algorithm for implementing a fault-tolerant distributed system has bee
 </p>
 </blockquote>
 <p>
-一直以来，人们都认为用于实现可容错的分布式系统的Paxos算法难以理解，可能是由于原稿的语言是希腊语[5]。其实它是最简单直观的分布式算法之一。Paxos的核心是一个共识算法，也就是[5]中提到的“synod”算法。下一节显示了这个共识算法自然而然地脱胎于我们希望它满足的特性。最后一节通过将共识算法应用于状态机来构建一个分布式系统的方式（这种方式可以说广为人知，因为它是分布式理论这一领域里可能最常被引用的文章[4]的主题）解释了完整的Paxos算法。<br />
+一直以来，很多人都认为用于实现可容错的分布式系统的Paxos算法难以理解，可能是因为原论文是希腊语[5]写成的。其实它是最简单直观的分布式算法之一。Paxos的核心是一个共识算法，也就是[5]中提到的“synod”算法。下一节会看到，这个共识算法很自然地脱胎于我们希望它满足的特性。最后一节通过将共识算法直接应用于状态机来构建一个分布式系统的方式（这种方式可以说广为人知，因为它是分布式理论这一领域里可能最常被引用的文章[4]的主题）解释了完整的Paxos算法。<br />
 </p>
 </div>
 </div>
@@ -122,12 +122,12 @@ Assume a collection of processes that can propose values. A consensus algorithm 
 </ul>
 </blockquote>
 <p>
-假设有一些进程，它们会提出议案。一致性算法保证这些议案中只有一个会被选中。如果一个议案都没有提出，那也就不会有选中的议案。如果一个议案被选中了，这些进程就应该知道被选中的是哪个。共识需要满足如下安全要求：<br />
+假设有一些进程，它们会提交一些值。一致性算法保证这些值中只有一个会被选中。如果一个值都没有提出，也就不会有值被选中。如果一个值被选中了，这些进程也应该知道被选中的是哪个。共识需要满足如下安全要求：<br />
 </p>
 <ul class="org-ul">
-<li>只有被提出的议案才能被选中<br /></li>
-<li>只有一个议案被选中<br /></li>
-<li>议案真的被选中之后，进程才能获悉有议案被选中<br /></li>
+<li>只有被提交的值才能被选中<br /></li>
+<li>只有一个值被选中<br /></li>
+<li>值真的被选中之后，进程才能获悉有值被选中<br /></li>
 </ul>
 
 
@@ -141,11 +141,11 @@ We let the three roles in the consensus algorithm be performed by three classes 
 </p>
 </blockquote>
 <p>
-我们不会尝试给出共识算法需要满足的活性要求。但是，目标是要确保某个提案最终被选中，而且如果有提案被选中，进程最终能够知道被选中的提案。<br />
+我们不会尝试给出共识算法需要满足的活性（liveness）要求。但是，目标是要确保提交的某个值最终会被选中，而且如果有值被选中，进程最终能够知道被选中的值。<br />
 </p>
 
 <p>
-共识算法中的三个角色分别由三种不同的代理来履行：proposer，acceptor，以及learner。在算法实现中，单个进程可以充当多个代理，但在这里我们不关注代理和进程的对应关系。<br />
+共识算法中的三个角色分别由三种不同的代理来扮演：proposer，acceptor，以及learner。在算法实现中，单个进程可以充当多个代理，但在这里我们不关注代理和进程的对应关系。<br />
 </p>
 
 <blockquote>
@@ -158,11 +158,11 @@ Assume that agents can communicate with one another by sending messages. We use 
 </ul>
 </blockquote>
 <p>
-假定代理可以通过消息通讯。我们使用常用的异步、非拜占庭模型：<br />
+假定代理相互之间通过消息通讯。我们使用常用的异步、非拜占庭模型：<br />
 </p>
 <ul class="org-ul">
-<li>代理运行速度不定，可能停机，可能会重启。因为所有的代理都可能在某个提案被选中之后发生故障又重启，所以发生故障而后重启的代理必须要能记住某些信息，否则共识就无法达成。<br /></li>
-<li>消息传递需要的时间长短不定，消息可能重复，可能丢失，但不会被篡改内容。<br /></li>
+<li>代理运行速度不定，可能停机，可能会重启。因为所有的代理都可能在某个值被选中之后发生故障后重启，所以发生故障后重启的代理必须要能记住某些信息，否则共识就无法达成。<br /></li>
+<li>消息传递需要的时间长短不定，消息可能重复，可能丢失，但内容不会被篡改。<br /></li>
 </ul>
 </div>
 </div>
@@ -176,7 +176,7 @@ The easiest way to choose a value is to have a single acceptor agent. A proposer
 </p>
 </blockquote>
 <p>
-使用单个acceptor是最简单的选择提案的方式。Proposer向这个acceptor发送提案，acceptor就选择接收到的第一个提案。这种方式尽管简单，却不合用，因为acceptor发生故障就会导致系统无法继续运行了。<br />
+最简单的选择值的方式是使用单个acceptor。Proposer向这个acceptor发送提案，acceptor选择收到的第一个提议的值。这种方式尽管简单，却不适合，因为acceptor发生故障就会导致系统无法继续运行了。<br />
 </p>
 
 <blockquote>
@@ -185,7 +185,7 @@ So, let’s try another way of choosing a value. Instead of a single acceptor, l
 </p>
 </blockquote>
 <p>
-所以，我们来尝试另一种选择提案的方式。我们使用多个acceptor而不是一个。Proposer向多个proposer发送提案。Acceptor可能会接受这个提案。如果有足够多的acceptor接受了某个提案，这个提案就被选中了。多少才算足够多呢？要保证只有一个提案被选中，足够多需要包含一半以上的acceptor（即多数集）。因为两个多数集中至少有一个acceptor是共有的，如果一个acceptor最多只能接受一个提案，这种选择提案的方式就是可行的。（在大量的论文中都有关于多数集的归纳陈述，看起来是从[3]开始。）<br />
+所以，我们来尝试另一种选择值的方式。我们使用多个acceptor而不是一个 。 Proposer向多个proposer发送建议值。 Acceptor可能会接受这个建议值。如果有足够多的acceptor接受了某个值，这个值就被选中了。多少才算足够多呢？要保证只有一个值被选中，足够多需要包含一半以上的acceptor（即多数集）。因为两个多数集中至少有一个acceptor是共有的，如果一个acceptor最多只能接受一个值，这种方式就是可行的。（在大量的论文中都有关于多数集的泛化【TODO 确认论文中是泛化吗？】，看起来是从[3]开始。）<br />
 </p>
 
 <blockquote>
@@ -195,7 +195,7 @@ In the absence of failure or message loss, we want a value to be chosen even if 
 </p>
 </blockquote>
 <p>
-在没有故障或消息丢失的情况下，即便只有单个proposer发出了一个提案，我们希望这个提案能被选中。这就要求：<br />
+在没有故障或消息丢失的情况下，即便只有单个proposer提议了一个值，我们也希望这个值能被选中。这就要求：<br />
 <b>P1. Acceptor必须接受它收到的第一个提案。</b><br />
 </p>
 
@@ -205,7 +205,7 @@ But this requirement raises a problem. Several values could be proposed by diffe
 </p>
 </blockquote>
 <p>
-但是这个要求带来一个问题。不同的proposer可能会同时发起多个提案，导致每个acceptor接受一个提案，但是哪个提案都没有被多数集接受。即便只有两个提案，如果每个都被约半数的acceptor接受，单个acceptor出现故障就会导致不会有提案被选中。<br />
+但是这个要求带来一个问题。不同的 proposer 可能会在同一时间提议多个值，导致每个 acceptor 接受了一个值，但是没有一个值被 acceptor 的多数集接受。即便只有两个值，如果每个都被约半数的 acceptor 接受，单个 acceptor 出现故障就会导致无法确定哪个值被选中了。<br />
 </p>
 
 <blockquote>
@@ -214,7 +214,7 @@ P1 and the requirement that a value is chosen only when it is accepted by a majo
 </p>
 </blockquote>
 <p>
-条件P1以及提案只有在被acceptor的多数集接受时才被选中意味着一个acceptor得能接受多个提案。通过给每个提案一个编号，我们可以记录一个acceptor接受的不同提案，因此提案包含编号和值。为了防止出现混乱，我们要求不同提案的编号要不一样。怎么做取决于实现，我们现在只是假定可以做到。一个提案被acceptor的多数集接受之后，其值也就被选中了。这时我们就说这个提案（以及它的值）被选中了。<br />
+条件P1以及值只有在被acceptor的多数集接受时才算被选中意味着一个acceptor得能接受多个提案。通过给每个提案一个编号，我们可以记录一个acceptor接受了哪些提案，因此每个提案包含提案编号和值。为了防止出现混乱，我们要求不同提案的编号要不一样。怎么做取决于实现，我们现在只是假定是这样的。当带有某个值的提案被acceptor的多数集接受之后，这个值也就被选中了。这时我们就说这个提案（以及它的值）被选中了。<br />
 </p>
 
 <blockquote>
@@ -224,7 +224,7 @@ We can allow multiple proposals to be chosen, but we must guarantee that all cho
 </p>
 </blockquote>
 <p>
-我们可以允许多个提案被选中，但必须保证所有被选中的提案都有相同的值。通过对提案编号使用归纳法，只要保证下面的条件了：<br />
+我们可以允许多个提案被选中，但必须保证所有被选中的提案都有相同的值。通过对提案编号使用归纳法，只要保证下面的条件即可：<br />
 <b>P2.如果一个值为 v 的提案被选中，那么被选中的、编号更高的所有提案的值是v。</b><br />
 </p>
 
@@ -239,12 +239,12 @@ To be chosen, a proposal must be accepted by at least one acceptor. So, we can s
 </p>
 </blockquote>
 <p>
-因为编号是全序的，P2保证了只会有一个值被选中。<br />
+因为编号是全序的，P2确保了至关重要的安全属性——即只会有一个值被选中。<br />
 </p>
 
 <p>
 提案要被选中，至少得有一个acceptor接受了它。因此，满足了下面的条件也就满足了P2:<br />
-<b>P2<sup>a</sup>. 如果一个值为v的提案被选中了，那么每个acceptor接受的、编号更高的所有提案的值是v。</b><br />
+<b>P2<sup>a</sup>. 如果一个值为v的提案被选中了，那么被任一acceptor接受的、编号更高的所有提案的值是v。</b><br />
 </p>
 
 <blockquote>
@@ -269,7 +269,7 @@ Every acceptor in C has accepted a proposal with number in m..(n − 1), and eve
 </p>
 </blockquote>
 <p>
-为了发现如何满足P2<sup>b</sup>，我们来考虑下怎么证明它成立。我们会假设某个编号为m值、为v的提案被选中，然后展示被 <b>发起</b> 的、编号为n（n&gt;m）的任何提案的值也是v。我们会对n使用归纳法来简化证明，所以我们会证明在附加条件－－所有被发起的、且编号在m..(n-1)之中的提案的值都是v－－下，编号为n的提案的值也是v，其中i..j表示从i到j的数字的集合。编号为m的提案如果被选中了，肯定会有acceptor的一个多数集C，C中的每个acceptor都接受了m提案。将这个结论和归纳假设结合起来，m被选中这个假设意味着：<br />
+为了找到如何满足P2<sup>b</sup>的方式，我们来考虑下怎么证明它成立。我们会假设某个编号为m值、为v的提案被选中，然后展示被 <b>发起</b> 的、编号为n（n&gt;m）的任何提案的值也是v。我们会对n使用归纳法来简化证明，所以我们会证明在附加条件——所有被发起的、且编号在m..(n-1)之中的提案的值都是v——下，编号为n的提案的值也是v，其中i..j表示从i到j的数字的集合。编号为m的提案如果被选中了，肯定会有acceptor的一个多数集C，C中的每个acceptor都接受了m提案。将这个结论和归纳假设结合起来，假设m被选中就意味着：<br />
 </p>
 
 <p>
@@ -277,7 +277,7 @@ Every acceptor in C has accepted a proposal with number in m..(n − 1), and eve
 </p>
 
 <p>
-【 <i>译注：C中的每个acceptor至少接受了m提案，更重要的是，编号在m..(n-1)中的提案要被接受，至少要跟acceptor的多数集发起申请，而这个多数集肯定跟C有交集，因此上面前半部分成立；后半部分由归纳假设－－所有被发起的、且编号在m..(n-1)之中的提案的值都是v－－即可得到</i> 】<br />
+【 <i>译注：C中的每个acceptor至少接受了m提案，更重要的是，编号在m..(n-1)中的提案要被接受，至少要跟acceptor的多数集发起申请，而这个多数集肯定跟C有交集，因此上面前半部分成立；后半部分由归纳假设——所有被发起的、且编号在m..(n-1)之中的提案的值都是v——即可得到</i> 】<br />
 </p>
 
 <blockquote>
@@ -291,7 +291,7 @@ We can therefore satisfy P2<sup>b</sup> by maintaining the invariance of P2<sup>
 </p>
 </blockquote>
 <p>
-因为acceptor的任意多数集S都包含C的至少一个成员，只要保持下面的不变式，我们就可以说编号为n的提案的值是v：<br />
+因为acceptor的任意多数集S都包含C的至少一个成员，只要保持下面的不变式满足，我们就可以说编号为n的提案的值是v：<br />
 </p>
 
 <p>
@@ -300,7 +300,7 @@ We can therefore satisfy P2<sup>b</sup> by maintaining the invariance of P2<sup>
 
 <p>
 保持不变式P2<sup>c</sup>成立就可以满足P2<sup>b</sup>。<br />
-【 <i>译注：满足(a)说明系统没有接受过任何提案；否则，假设接受过的提案是m，接受m的acceptor多数集必定跟S有交集，矛盾了。</i> 】<br />
+【 <i>译注：满足(a)说明系统还没有接受过任何提案；否则，假设接受过的提案是m，接受m的acceptor多数集必定跟S有交集，矛盾了。</i> 】<br />
 </p>
 
 <blockquote>
@@ -309,7 +309,7 @@ To maintain the invariance of P2<sup>c</sup>, a proposer that wants to issue a p
 </p>
 </blockquote>
 <p>
-为了保持不变式P2<sup>c</sup>成立，想要发起编号为n的提案的proposer必须要知道编号仅次于n且已经或者将要被acceptor的多数集接受的提案（如果提案存在的话）。要知道已经被接受的提案是容易的；预测哪些提案要被接受就难了，proposer设法得到一个不接受编号比n更小的提案的承诺来规避需要预测未来的问题。换句话说，proposer会请求acceptor不要接受任何编号小于n的提案。由此得到的发起提案的算法如下：<br />
+为了保持不变式P2<sup>c</sup>成立，想要发起编号为n的提案的proposer必须要知道编号仅次于n且 <b>已经</b> 或者 <b>将要</b> 被acceptor的多数集接受的提案（如果提案存在的话）。获悉已经被接受的提案是容易的；预测哪些提案将要被接受就难了。Proposer不会尝试预测未来，而是通过得到一个承诺（承诺不会接受小于n的提案）来控制未来。换句话说，proposer会请求acceptor不要接受任何编号小于n的提案。由此得到的发起提案的算法如下：<br />
 </p>
 
 <blockquote>
@@ -329,11 +329,12 @@ A proposer issues a proposal by sending, to some set of acceptors, a request tha
 </p>
 </blockquote>
 <ol class="org-ol">
-<li>Proposer选择一个新的提案编号n，然后向某些acceptor发送请求（我将这个请求称为 <b>编号为n的 <i>prepare</i> 请求</b> ），要求它们响应如下：<br />
+<li>Proposer选择一个新的提案编号n，然后向某些acceptor发送请求，要求它们响应如下：<br />
 a. 承诺绝不会在接受编号比n小的提案<br />
-b. 如果接受过编号比n小的提案，将其中编号最大的返回<br /></li>
-<li>如果proposer从acceptor的多数集收到了请求的响应，它就会提出一个编号为n、值为v的提案，其中v是步骤1中返回的编号最高的提案的值，或者如果步骤1没有返回任何值，proposer就自己选择一个。<br />
-Proposer提出提案就是向acceptor的一个集合发送接受提案的请求。（这个集合不用非得是步骤1中回复过prepare请求的acceptor集合） 这就是 <i>accept</i> 请求。<br /></li>
+b. 如果接受过编号比n小的提案，将其中编号最大的返回<br />
+我将这个请求称为 <b>编号为n的 <i>prepare</i> 请求</b> 。<br /></li>
+<li>如果proposer从acceptor的多数集收到了请求的响应，它就会提出一个编号为n、值为v的提案，其中v是步骤1中返回的编号最高的提案的值，如果步骤1没有返回任何值，proposer就自己选择一个。<br />
+Proposer提出提案就是向acceptor的一个集合发送接受提案的请求。（这个集合不用非得是步骤1中响应过prepare请求的acceptor集合） 这就是 <i>accept</i> 请求。<br /></li>
 </ol>
 
 <blockquote>
@@ -347,7 +348,7 @@ Observe that P1<sup>a</sup> subsumes P1.<br />
 </p>
 </blockquote>
 <p>
-上面描述了proposer的算法。Acceptor的算法呢？它会从proposer接收到两种请求：prepare请求和accept请求。Acceptor可以忽略任意的请求而不影响安全性。因此我们只需要说明什么时候acceptor可以响应prepare请求。除非acceptor承诺过，否则它就可以响应accept请求，接受提案。换句话说：<br />
+上面描述了proposer的算法。Acceptor的算法呢？它会从proposer接收到两种请求：prepare请求和accept请求。Acceptor可以忽略任意的请求而不影响安全性。因此我们只需要说明什么时候acceptor可以响应请求。它可以响应所有的prepare请求。对于accept请求，只要acceptor没有承诺过不响应，它就可以响应请求，接受提案。换句话说：<br />
 <b>P1<sup>a</sup>. 当且仅当acceptor没有响应过编号大于n的prepare请求时，它才能接受编号为n的提案。</b><br />
 </p>
 
@@ -366,7 +367,7 @@ Suppose an acceptor receives a prepare request numbered n, but it has already re
 </p>
 </blockquote>
 <p>
-集设acceptor接收到了编号为n的prepare请求，但它已经响应过编号大于n的prepare请求，承诺过不会再接受编号为n的请求。因此这个acceptor不响应编号n的请求毫无问题，因为它不会接受这个提案。因此可以让acceptor忽略这种prepare请求。对于已经接受过的提案，它也可以忽略相关的prepare请求。<br />
+假设acceptor收到了编号为n的prepare请求，但它已经响应过编号大于n的prepare请求，也就是承诺过不会再接受编号为n的请求。因此这个acceptor不响应编号n的请求毫无问题，因为它不会接受这个提案。因此可以让acceptor忽略这种prepare请求。对于已经接受过的提案，它也可以忽略相关的prepare请求。<br />
 【 <i>译注：理论上直接忽略没有问题，但是实现时，这么直接忽略感觉并不好，因为需要proposer超时等待，所以acceptor直接返回了Nack更好。</i> 】<br />
 </p>
 
@@ -393,14 +394,14 @@ b. If an acceptor receives an accept request for a proposal numbered n, it accep
 </ul>
 </blockquote>
 <p>
-将proposer和acceptor的逻辑放一起，我们看到算法分两个步骤执行的：<br />
+将proposer和acceptor的动作组合起来，我们看到算法分两个步骤执行的：<br />
 </p>
 <ol class="org-ol">
 <li>步骤1<br />
 a. Proposer选择一个提案编号，向acceptor的多数集发送编号为n的prepare请求。<br />
 b. 如果acceptor收到的prepare请求的编号比它曾响应过的所有prepare请求的编号都大，它就响应这个请求，承诺不会再接受编号比n小的任何提案，并且如果接受过提案，则将编号最大的那个提案返回。<br /></li>
 <li>步骤2<br />
-a. 如果proposer从acceptor的多数集收到了针对它的编号n的prepare请求的响应，它就会向那些acceptor为编号n、值为v的提案发送accept请求，其中v是prepare响应中编号最大的提案的值，或者（如果prepare响应中没有提案）任意值。<br />
+a. 如果proposer从acceptor的多数集收到了针对它的编号n的prepare请求的响应，它就会为编号为n、值为v的提案向这些acceptor发送accept请求，其中v是prepare响应中编号最大的提案的值，或者（如果prepare响应中没有提案）任意值。<br />
 b. 如果acceptor收到了针对编号n的提案的accept请求，除非它响应过编号大于n的prepare请求，它就会接受这个提案。<br /></li>
 </ol>
 
@@ -410,7 +411,7 @@ A proposer can make multiple proposals, so long as it follows the algorithm for 
 </p>
 </blockquote>
 <p>
-一个proposer可以发起多个提案，只要它处理每个提案时都遵循算法。它可以在协议处理的过程中随时放弃某个提案。（不会影响正确性，即便是请求和/或响应在提案被放弃之后很久才被收到）当有其他proposer已经尝试发起编号更高的提案时，放弃当前的提案也不失为一个好主意。因此，如果acceptor因为收到了编号更高的prepare请求而忽略了别的prepare或者accept请求，它应该通知proposer，然后proposer应该放弃它的提案。这是个性能优化，不会影响正确性。<br />
+一个proposer可以发起多个提案，只要它处理每个提案时都遵循算法。它可以在处理过程中随时放弃某个提案。（不会影响正确性，即便是请求和/或响应在提案被放弃之后很久才被收到）当有其他proposer已经尝试发起编号更高的提案时，放弃当前的提案也不失为一个好主意。因此，如果acceptor因为收到了编号更高的prepare请求而忽略了别的prepare或者accept请求，它应该通知proposer，然后proposer应该放弃它的提案。这是个性能优化，不会影响正确性。<br />
 </p>
 </div>
 </div>
@@ -613,7 +614,7 @@ A newly chosen leader executes phase 1 for infinitely many instances of the cons
 </p>
 </blockquote>
 <p>
-新选出的leader可以为无限多个实例执行阶段1 —— 上面的场景中的135-137以及大于139的所有实例。为这些实例使用同样的提案编号，leader只需要向所有其他服务器发送一条较短的消息就可以了。在阶段1，除非acceptor已经收到了其他proposer的阶段2消息，否则它返回成功就可以了（在这个场景里，只有实例135/140会出现这种情况 【TODO】）。因此，服务器（作为accetpor）可以为所有这些实例只返回一条较短的响应消息。因此执行无限多实例的阶段1不会带来什么问题。<br />
+新选出的leader可以为无限多个实例执行阶段1 —— 上面的场景中的135-137以及大于139的所有实例。为这些实例使用同样的提案编号，leader只需要向所有其他服务器发送一条较短的消息就可以了。在阶段1，除非acceptor已经收到了其他proposer的阶段2消息，否则它返回成功就可以了（在这个场景里，只有实例135/140会出现这种情况 【TODO】）。因此，服务器（作为accetpor）可以为所有这些实例只返回一条较短的响应消息。所以，执行无限多实例的阶段1不会带来什么问题。<br />
 </p>
 
 <blockquote>
@@ -622,7 +623,7 @@ Since failure of the leader and election of a new one should be rare events, the
 </p>
 </blockquote>
 <p>
-因Leader发生故障而选一个新的leader很少见，执行一个状态机命令的实际成本——即对命令/值达成共识——就是执行算法的阶段2的成本。在可能出现故障的情况下，所有的共识算法中，Paxos算法的阶段2的可以触及成本下限[2]。因此，根本上来说Paxos是最好的。<br />
+因Leader发生故障而选一个新的leader很少见，执行一个状态机命令的实际成本——即对命令/值达成共识——就是执行算法的阶段2的成本。在可能出现故障的情况下，所有的共识算法中，Paxos算法的阶段2有尽可能低的成本[2]。因此，根本上来说Paxos是最好的。<br />
 </p>
 
 <blockquote>
@@ -640,7 +641,7 @@ If the set of servers can change, then there must be some way of determining wha
 </p>
 </blockquote>
 <p>
-如果服务器不固定，必须要有某中方法来确定哪些服务器实现了哪些实例。最简单的方法是通过状态机自身。当前的服务器集合可以作为状态的一部分，并且可以通过普通的状态机命令改变。如果执行完第i个状态机命令后的状态指定了哪些服务器执行实例i+&alpha; ，leader就可以提前执行&alpha; 个命令【TODO】。这样不管多复杂的服务器重配置算法都可以很容易实现。<br />
+如果服务器不固定，必须要有某种方法来确定哪些服务器实现了哪些实例。最简单的方法是通过状态机自身。当前的服务器集合可以作为状态的一部分，并且可以通过普通的状态机命令改变。如果执行完第i个状态机命令后的状态指定了哪些服务器执行实例i+&alpha; ，leader就可以提前执行&alpha; 个命令【TODO】。这样不管多复杂的服务器重配置算法都可以很容易实现。<br />
 </p>
 </div>
 </div>
