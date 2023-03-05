@@ -1,4 +1,5 @@
 <!doctype html>
+<!-- <link rel="stylesheet" href="https://zbelial.github.io/static/main.css" type="text/css" /> -->
 <html lang="en-us">
   <head>
     
@@ -20,7 +21,7 @@
   
   <meta name="twitter:card" content="summary_large_image">
 
-    <link rel="stylesheet" href="https://zbelial.github.io/static/main.css" type="text/css" />
+    <link rel="stylesheet" href="static/main.css" type="text/css" />
     
   </head>
   <body>
@@ -525,7 +526,7 @@ A simple way to implement a distributed system is as a collection of clients tha
 </p>
 </blockquote>
 <p>
-实现分布式系统的一个简单方式是由许多客户端向中心服务器发送命令。服务器可以看作是确定状态机，能够按某个顺序执行客户端命令。状态机有一个当前状态；它读入一个命令，得到输出结果和新的状态。例如，分布式银行系统的客户端可能是出纳员，状态机的状态可能由所有用户的账户余额组成。提款操作就是执行一个状态机命令，在账户余额大于要提款的金额时减少账户余额，并返回提款前、后的账户余额。<br />
+一种简单的实现分布式系统的方式是由许多客户端向中心服务器发送命令。服务器可以看作是确定状态机，能够按某个顺序执行客户端命令。状态机有一个当前状态；它每次读入一个命令作为输入，得到输出结果和新的状态。例如，分布式银行系统的客户端可能是出纳员，状态机的状态可能由所有用户的账户余额组成。提款操作就是执行一个状态机命令，在账户余额大于要提款的金额时减少账户余额，并返回提款前、后的账户余额。<br />
 </p>
 
 <blockquote>
@@ -534,7 +535,7 @@ An implementation that uses a single central server fails if that server fails. 
 </p>
 </blockquote>
 <p>
-使用单中心服务器的系统，服务器出现故障，系统就无法正常运行。因此我们使用一组服务器，每台服务器独立实现状态机。因为状态机是确定的，如果所有状态机执行相同的命令序列，它们就会生成同样的状态和输出序列。发起命令的客户端使用任一个服务器执行命令后的输出。<br />
+使用单个中心服务器的系统，服务器出现故障，系统就无法正常运行。因此我们使用一组服务器，每台服务器独立实现状态机。因为状态机是确定的，如果所有状态机执行相同的命令序列，它们就会生成同样的状态和输出序列。发起命令的客户端就可以使用任一个服务器执行命令后的输出。<br />
 </p>
 
 <blockquote>
@@ -543,7 +544,7 @@ To guarantee that all servers execute the same sequence of state machine command
 </p>
 </blockquote>
 <p>
-为了保证所有服务器能以相同的顺序执行状态机命令，我们会运行一系列相互独立的实例，每个实例都执行Paxos共识算法，第i个实例选中的值就是第i个状态机命令。在每个实例中，每个server都会充当所有的角色（proposer，acceptor以及learner）。现在我会假定使用相同的一组服务器，因此共识算法的所有实例都使用同样的代理。<br />
+为了保证所有服务器能以相同的顺序执行状态机命令，我们会运行一系列相互独立的实例，每个实例都执行Paxos共识算法，第i个实例选中的值就是第i个状态机命令。在每个实例中，每个server都会充当所有的角色（proposer，acceptor以及learner）。现在我会假定使用一组固定的服务器，因此共识算法的所有实例都使用同样的代理。<br />
 </p>
 
 <blockquote>
